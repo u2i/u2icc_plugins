@@ -1,0 +1,22 @@
+{
+  "name": "strasburger-challenge",
+  "main": "./lib/strasburger-challenge",
+  "version": "0.0.0",
+  "description": "Flips editor.",
+  "keywords": [
+    "mirror",
+    "u2icc",
+    "coding challenge",
+    "fun"
+  ],
+  "activationCommands": {
+    "atom-workspace": "strasburger-challenge:activate"
+  },
+  "repository": "https://github.com/u2i/atom-strasburger-challenge",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

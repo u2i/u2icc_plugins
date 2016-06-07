@@ -1,0 +1,105 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+@import "octicon-mixins";
+
+@panel-width: 300px;
+
+.u2i-hackathon {
+}
+
+.challenge-title {
+  font-size: 20px
+}
+
+.challenge-description {
+  font-size: 15px;
+}
+
+.testing-view {
+  width: @panel-width;
+  height: inherit;
+  overflow-y: auto;
+  resize: horizontal;
+  padding: 5px;
+}
+
+.testing-view-header {
+  font-size: @input-font-size * 1.2;
+  text-align: center;
+}
+
+.testing-view-body {
+  font-size: @input-font-size * 1.2;
+  text-align: center;
+}
+
+#testing-view-add-button, #testing-view-run-button {
+  font-size: @input-font-size;
+  width: 80%;
+  margin: 5px auto;
+}
+
+.testing-view-input-row {
+  position: relative;
+  margin: 5px auto;
+}
+
+textarea.testing-view-input {
+  width: 80%;
+  font-size: @input-font-size * 0.86;
+  font-family: monospace;
+  color: @text-color;
+  background-color: #222;
+  resize: none;
+  word-wrap: normal;
+  white-space: nowrap;
+}
+
+.testing-view-remove-button {
+  .octicon(remove-close);
+  height: @input-font-size * 2;
+  align-self: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+pre.testing-view-output,
+pre.testing-view-error {
+  word-wrap: break-word;
+  width: 90%;
+  margin: 5px auto;
+}
+
+pre.testing-view-output {
+  border: 1px solid @background-color-success;
+  color: @text-color-success;
+}
+
+pre.testing-view-error {
+  border: 1px solid @background-color-error;
+  color: @text-color-error;
+}
+
+.language-choice-view {
+  padding: 5px;
+  font-size: @input-font-size * 1;
+}
+
+#language-choice-box {
+  overflow: hidden;
+  padding-left: 10px;
+}
+
+#language-choice-box select {
+  background: rgb(50, 124, 46) !important;
+  color: #fff;
+}
+
+#language-choice-box select {
+  background: transparent;
+  font-family: @font-family;
+  padding: 0px 42px 0px 10px;
+}

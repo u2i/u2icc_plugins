@@ -1,0 +1,22 @@
+{
+  "name": "random-font-size",
+  "main": "./lib/random-font-size",
+  "version": "0.0.0",
+  "description": "Changes font size with keydown.",
+  "keywords": [
+    "keyboard",
+    "u2icc",
+    "coding challenge",
+    "fun"
+  ],
+  "activationCommands": {
+    "atom-workspace": "random-font-size:activate"
+  },
+  "repository": "https://github.com/u2i/atom-random-font-size",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "dvorak",
+  "main": "./lib/dvorak",
+  "version": "0.0.0",
+  "description": "Flips editor.",
+  "keywords": [
+    "mirror",
+    "u2icc",
+    "coding challenge",
+    "fun"
+  ],
+  "activationCommands": {
+    "atom-workspace": "dvorak:activate"
+  },
+  "repository": "https://github.com/u2i/atom-dvorak",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "random-color",
+  "main": "./lib/random-color",
+  "version": "0.0.0",
+  "description": "Changes font and background colors every 10 seconds.",
+  "keywords": [
+  ],
+  "activationCommands": {
+    "atom-workspace": "random-color:activate"
+  },
+  "repository": "https://github.com/atom/random-color",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

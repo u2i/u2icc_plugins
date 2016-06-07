@@ -1,0 +1,43 @@
+{
+  "name": "u2i-hackathon",
+  "main": "./index.coffee",
+  "version": "1.0.0",
+  "description": "Manages downloading input data for challenges and enabling/disabling other hackathon packages",
+  "keywords": [
+    "u2i",
+    "hackathon",
+    "challenge"
+  ],
+  "repository": "https://github.com/u2i/atom-u2i-hackathon",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "providedServices": {
+    "challenge": {
+      "description": "Challenge object provided by u2i Hackathon Server",
+      "versions": {
+        "0.1.0": "provideChallenge"
+      }
+    }
+  },
+  "consumedServices": {
+    "provide-blank-runtime": {
+      "versions": {
+        "0.1.0": "consumeBlankRuntime"
+      }
+    },
+    "provide-keystroke-counter": {
+      "versions": {
+        "0.1.0": "consumeKeystrokeCounter"
+      }
+    }
+  },
+  "dependencies": {
+    "actioncable": "^5.0.0-beta1-3",
+    "moment": "^2.11.2"
+  },
+  "devDependencies": {
+    "jasmine-data-provider": "^2.1.0"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "backspace-death",
+  "main": "./lib/backspace-death",
+  "version": "0.0.0",
+  "description": "Deletes the whole editor content when a user presses backspace.",
+  "keywords": [
+  ],
+  "activationCommands": {
+    "atom-workspace": "backspace-death:activate"
+  },
+  "repository": "https://github.com/atom/backspace-death",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

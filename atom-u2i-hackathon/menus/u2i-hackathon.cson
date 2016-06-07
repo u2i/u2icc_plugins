@@ -1,0 +1,22 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'context-menu':
+  'atom-text-editor': [
+    {
+      'label': 'Toggle u2i-hackathon'
+      'command': 'u2i-hackathon:toggle'
+    }
+  ]
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'u2i-hackathon'
+      'submenu': [
+        {
+          'label': 'Toggle'
+          'command': 'u2i-hackathon:toggle'
+        }
+      ]
+    ]
+  }
+]

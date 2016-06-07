@@ -1,0 +1,22 @@
+{
+  "name": "blank-keyboard",
+  "main": "./lib/blank-keyboard",
+  "version": "0.0.0",
+  "description": "Does nothinkg",
+  "keywords": [
+    "mirror",
+    "u2icc",
+    "coding challenge",
+    "fun"
+  ],
+  "activationCommands": {
+    "atom-workspace": "blank-keyboard:activate"
+  },
+  "repository": "https://github.com/u2i/atom-blank-keyboard",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}
