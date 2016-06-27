@@ -1,0 +1,24 @@
+.connection-status-view {
+  font-size: @input-font-size;
+
+  div {
+    padding: 5px;
+  }
+
+  .disconnected {
+    color: @text-color-warning;
+  }
+
+  .invalid-token {
+    color: @text-color-error;
+  }
+
+  .connected {
+    color: @text-color-success;
+
+    .team-name {
+      font-weight: bolder;
+      padding: 5px;
+    }
+  }
+}

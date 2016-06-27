@@ -1,4 +1,4 @@
-executeTasks = require './task-executor'
+executeTasks = require '../task-executor'
 {File} = require 'atom'
 
 inputRowHtml = '
@@ -49,19 +49,32 @@ class TestingView
 
   run: ->
     @clearOutputsAndErrors()
-    textareas = @element.querySelectorAll '.testing-view-input'
-    if textareas.length > 0
-      inputs = for index in [0...textareas.length]
-        textareas[index].value
-      outputsCallback = (outputs) => @addOutputs outputs
-      errorCallback = (error) => @addError error
-      executeTasks @runtime, inputs, outputsCallback, errorCallback
+    @removeEmptyInputs()
+    @runWithInputs()
+    @ensureAtLeastOneInput()
 
   clearOutputsAndErrors: ->
     ['#testing-view-outputs', '#testing-view-errors'].forEach (id) =>
       div = @element.querySelector id
       while div.lastChild
         div.removeChild(div.lastChild)
+
+  removeEmptyInputs: ->
+    @getTextAreasArray()
+      .filter((textarea) -> textarea.value == '')
+      .forEach((textarea) -> textarea.parentNode.remove())
+
+  getTextAreasArray: ->
+    textareas = @element.querySelectorAll '.testing-view-input'
+    Array.from textareas
+
+  runWithInputs: ->
+    textareas = @getTextAreasArray()
+    if textareas.length > 0
+      inputs = (_.value for _ in textareas)
+      outputsCallback = (outputs) => @addOutputs outputs
+      errorCallback = (error) => @addError error
+      executeTasks @runtime, inputs, outputsCallback, errorCallback
 
   addOutputs: (outputs) ->
     outputsElement = @element.querySelector('#testing-view-outputs')
@@ -76,6 +89,11 @@ class TestingView
     errorDiv.classList.add 'testing-view-error'
     errorDiv.textContent = error
     @element.querySelector('#testing-view-errors').appendChild errorDiv
+
+  ensureAtLeastOneInput: ->
+    textareas = @getTextAreasArray()
+    if textareas.length == 0
+      @addInput()
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->

@@ -1,10 +1,8 @@
 ChallengesService = require './../lib/challenges-service'
 using = require 'jasmine-data-provider'
-ActionCable = require 'actioncable'
 
-cableServerUrl = 'ws://some.host:2222'
-teamToken = 'someTeamToken'
 mockChallenge =
+  id: '0123456789abcdef'
   name: 'Fourier transform'
   description: 'Rly hard one'
 solutionResponseBodiesWithExpectedFeedbacks = [
@@ -46,150 +44,390 @@ solutionResponseBodiesWithExpectedFeedbacks = [
 ]
 
 describe 'ChallengesService', ->
+  [challengesService, mockActionCableSubscription, onConnectedDisposable, onReceivedDisposable] = []
+  [callOnConnected, callOnReceived] = [(->), ->]
+
   beforeEach ->
-    @mockSubscription = jasmine.createSpyObj 'mockSubscription',
-      ['perform', 'unsubscribe']
+    [onConnectedDisposable, onReceivedDisposable] =
+      ['onConnectedDisposable', 'onReceivedDisposable'].map (spyName) ->
+        jasmine.createSpyObj spyName, ['dispose']
 
-    @mockConsumer =
-      subscriptions:
-        create: jasmine.createSpy('create').andReturn @mockSubscription
-      connection: jasmine.createSpyObj('connection', ['close'])
+    mockActionCableSubscription =
+      perform: jasmine.createSpy 'perform'
+      onConnected: (callback) ->
+        callOnConnected = callback
+        onConnectedDisposable
+      onReceived: (callback) ->
+        callOnReceived = callback
+        onReceivedDisposable
+      destroy: jasmine.createSpy 'destroy'
 
-    spyOn(ActionCable, 'createConsumer').andReturn @mockConsumer
+    challengesService = new ChallengesService mockActionCableSubscription
 
-    @getRegisteredSubscriptionCallbacks = =>
-      @mockConsumer.subscriptions.create.mostRecentCall.args[1]
+  describe '::constructor', ->
+    it "initializes the '_awaitingCurrentChallenge' field to false", ->
+      expect(challengesService._awaitingCurrentChallenge).toEqual false
 
-    @challengesService = new ChallengesService(cableServerUrl, teamToken)
+  describe '::destroy', ->
+    it "does not call ::destroy on the subscription", ->
+      challengesService.destroy()
 
-  describe '.constructor', ->
-    it 'connects to the ActionCable server', ->
-      expect(ActionCable.createConsumer).toHaveBeenCalledWith(cableServerUrl)
+      expect(mockActionCableSubscription.destroy).not.toHaveBeenCalled()
 
-    it 'subscribes to AtomChannel using the team token', ->
-      expect(@mockConsumer.subscriptions.create).toHaveBeenCalled()
-      expect(@mockConsumer.subscriptions.create.mostRecentCall.args[0]).toEqual
-        channel: 'AtomChannel'
-        token: teamToken
+    it "disposes the supscription to 'connected' events", ->
+      challengesService.destroy()
+      expect(onConnectedDisposable.dispose).toHaveBeenCalled()
 
-    describe 'registering callbacks for subscription events', ->
-      eventNames = ['initialized', 'connected', 'rejected', 'disconnected', 'received']
+    it "disposes the supscription to 'received' events", ->
+      challengesService.destroy()
+      expect(onReceivedDisposable.dispose).toHaveBeenCalled()
 
-      using eventNames, (eventName) ->
-        it "registers a callback for the '#{eventName}' event", ->
-          callbacks = @getRegisteredSubscriptionCallbacks()
-          expect(callbacks[eventName]).toBeDefined()
-
-  describe '.destroy', ->
-    it "calls 'unsubscribe' on the subscription", ->
-      @challengesService.destroy()
-
-      expect(@mockSubscription.unsubscribe).toHaveBeenCalled()
-
-    it "calls 'close' on the connection", ->
-      @challengesService.destroy()
-
-      expect(@mockConsumer.connection.close).toHaveBeenCalled()
-
-  describe '.getCurrentChallenge', ->
+  describe '::getCurrentChallenge', ->
     it 'returns the challenge object if a challenge is active', ->
-      @challengesService._challenge = mockChallenge
-      expect(@challengesService.getCurrentChallenge()).toEqual(mockChallenge)
+      challengesService._challenge = mockChallenge
+      expect(challengesService.getCurrentChallenge()).toEqual(mockChallenge)
 
     it 'throws an error if no challenge is active', ->
-      expect(@challengesService.getCurrentChallenge).toThrow(
+      expect(challengesService.getCurrentChallenge).toThrow(
         new Error("No challenge active."))
 
-  describe '.checkSolution', ->
+  describe '::checkSolution', ->
     it "performs 'solve_challenge' with outputs and 0 subtracted points", ->
       outputs = ['a', 'b', 'c']
 
-      @challengesService.checkSolution outputs
-      expect(@mockSubscription.perform).toHaveBeenCalledWith(
+      challengesService.checkSolution outputs
+      expect(mockActionCableSubscription.perform).toHaveBeenCalledWith(
         'solve_challenge', outputs: outputs, subtractedPoints: 0)
 
     it "performs 'solve_challenge' with outputs and specified subtracted points", ->
       outputs = ['a', 'b', 'c']
       subtractedPoints = 50
 
-      @challengesService.checkSolution outputs, subtractedPoints
-      expect(@mockSubscription.perform).toHaveBeenCalledWith(
+      challengesService.checkSolution outputs, subtractedPoints
+      expect(mockActionCableSubscription.perform).toHaveBeenCalledWith(
         'solve_challenge', outputs: outputs, subtractedPoints: subtractedPoints)
 
-  describe '.updateSubtractedPoints', ->
+    using [true, false], (performResult) ->
+      it "returns the result of perform", ->
+        mockActionCableSubscription.perform.andReturn performResult
+        returnValue = challengesService.checkSolution ['a']
+        expect(returnValue).toEqual performResult
+
+  describe '::updateSubtractedPoints', ->
     it "performs 'update_subtracted_points'", ->
       subtractedPoints = 50
 
-      @challengesService.updateSubtractedPoints subtractedPoints
-      expect(@mockSubscription.perform).toHaveBeenCalledWith(
+      challengesService.updateSubtractedPoints subtractedPoints
+      expect(mockActionCableSubscription.perform).toHaveBeenCalledWith(
         'update_subtracted_points', points: subtractedPoints)
 
-  describe "behavior on subscription events", ->
-    describe "executing callbacks registered with exposed methods", ->
-      eventsWithCorrespondingMethods = [
-        ['initialized', 'onSubscriptionInitialized'],
-        ['connected', 'onConnected'],
-        ['rejected', 'onRejected'],
-        ['disconnected', 'onDisconnected']
-      ]
+    using [true, false], (performResult) ->
+      it "returns the result of perform", ->
+        mockActionCableSubscription.perform.andReturn performResult
+        returnValue = challengesService.updateSubtractedPoints 50
+        expect(returnValue).toEqual performResult
 
-      using eventsWithCorrespondingMethods, (event, method) ->
-        beforeEach ->
-          @executed = false
-          @callback = =>
-            @executed = true
-
-        it "executes callbacks registered with '#{method}' on '#{event}'", ->
-          @challengesService[method](@callback)
-
-          @getRegisteredSubscriptionCallbacks()[event]()
-          expect(@executed).toBe(true)
-
-      it "executes callbacks on a new challenge", ->
-        @challengesService.onChallengeStarted (challenge) =>
-          @actualChallenge = challenge
-
-        @getRegisteredSubscriptionCallbacks().received
-          message: 'challengeStarted'
-          body: mockChallenge
-        expect(@actualChallenge).toEqual(mockChallenge)
-
-      it "executes callbacks on a challenge end", ->
-        @challengesService.onChallengeFinished =>
-          @executed = true
-
-        @getRegisteredSubscriptionCallbacks().received
-          message: 'challengeFinished'
-          body: {}
-        expect(@executed).toBe(true)
-
-      describe "executing callbacks on a solution response", ->
-        using solutionResponseBodiesWithExpectedFeedbacks, (data) ->
-          it "executes callbacks with correct feedback", ->
-            @challengesService.onSolutionFeedback (feedback) =>
-              @actualFeedback = feedback
-
-            @getRegisteredSubscriptionCallbacks().received
-              message: 'solutionResponse'
-              body: data.responseBody
-            expect(@actualFeedback).toEqual data.expectedFeedback
-
+  describe "behavior on events emitted by ActionCableSubscription", ->
     it "performs 'send_current_challenge' on 'connected'", ->
-      @getRegisteredSubscriptionCallbacks().connected()
+      expect(mockActionCableSubscription.perform).not.toHaveBeenCalled()
 
-      expect(@mockSubscription.perform).
+      callOnConnected()
+
+      expect(mockActionCableSubscription.perform).
         toHaveBeenCalledWith 'send_current_challenge'
 
-    it "sets @_challenge on a new challenge", ->
-      @getRegisteredSubscriptionCallbacks().received
-        message: 'challengeStarted'
-        body: mockChallenge
-      expect(@challengesService._challenge).toEqual(mockChallenge)
+    it "sets the '_awaitingCurrentChallenge' field to true on 'connected'", ->
+      callOnConnected()
 
-    it 'removes @_challenge on a challenge end', ->
-      @challengesService._challenge = mockChallenge
+      expect(challengesService._awaitingCurrentChallenge).toEqual true
 
-      @getRegisteredSubscriptionCallbacks().received
-        message: 'challengeFinished'
-        body: {}
-      expect(@challengesService._challenge).toBe(null)
+  describe "behavior on a 'challengeStarted' message", ->
+    receiveChallengeStarted = -> callOnReceived
+      message: 'challengeStarted'
+      body: mockChallenge
+
+    describe "when no challenge has been active", ->
+      beforeEach ->
+        challengesService._challenge = null
+
+      it "sets the '_challenge' field", ->
+        receiveChallengeStarted()
+        expect(challengesService._challenge).toEqual mockChallenge
+
+      it "resets the '_awaitingCurrentChallenge' field", ->
+        challengesService._awaitingCurrentChallenge = true
+
+        receiveChallengeStarted()
+        expect(challengesService._awaitingCurrentChallenge).toEqual false
+
+      it "executes callbacks registered with ::onChallengeStarted", ->
+        [actualChallenge, onChallengeFinishedExecuted] = []
+        challengesService.onChallengeStarted (challenge) ->
+          actualChallenge = challenge
+        challengesService.onChallengeFinished ->
+          onChallengeFinishedExecuted = true
+
+        receiveChallengeStarted()
+        expect(actualChallenge).toEqual mockChallenge
+        expect(onChallengeFinishedExecuted).not.toBeDefined()
+
+    describe "when a challenge with the same id has been active", ->
+      [oldChallenge] = []
+
+      beforeEach ->
+        oldChallenge = id: mockChallenge.id
+        challengesService._challenge = oldChallenge
+
+      it "does not update the '_challenge' field", ->
+        receiveChallengeStarted()
+        expect(challengesService._challenge).toEqual oldChallenge
+
+      it "resets the '_awaitingCurrentChallenge' field", ->
+        challengesService._awaitingCurrentChallenge = true
+
+        receiveChallengeStarted()
+        expect(challengesService._awaitingCurrentChallenge).toEqual false
+
+      it "does not execute callbacks", ->
+        [actualChallenge, executed] = []
+
+        challengesService.onChallengeStarted (challenge) ->
+          actualChallenge = challenge
+        challengesService.onChallengeFinished ->
+          executed = true
+
+        receiveChallengeStarted()
+        expect(actualChallenge).not.toBeDefined()
+        expect(executed).not.toBeDefined()
+
+    describe "when a challenge with a different id has been active", ->
+      [oldChallenge] = []
+
+      beforeEach ->
+        oldChallenge =
+          id: 'dizidisdifferent'
+          name: 'Old one'
+          description: 'Really old one.'
+        challengesService._challenge = oldChallenge
+
+      it "executes callbacks in a proper order", ->
+        [actualChallenge, executed] = []
+
+        challengesService.onChallengeFinished ->
+          expect(actualChallenge).not.toBeDefined()
+          # expect(@challengesService._challenge).toEqual
+          executed = true
+        challengesService.onChallengeStarted (challenge) ->
+          expect(executed).toEqual true
+          actualChallenge = challenge
+
+        receiveChallengeStarted()
+        expect(actualChallenge).toEqual(mockChallenge)
+
+      it "unsets and updates the '_challenge' field", ->
+        challengesService.onChallengeFinished ->
+          expect(challengesService._challenge).toEqual null
+        challengesService.onChallengeStarted (challenge) ->
+          expect(challengesService._challenge).toEqual mockChallenge
+
+        receiveChallengeStarted()
+        expect(challengesService._challenge).toEqual mockChallenge
+
+      it "resets the '_awaitingCurrentChallenge' field", ->
+        challengesService._awaitingCurrentChallenge = true
+
+        receiveChallengeStarted()
+        expect(challengesService._awaitingCurrentChallenge).toEqual false
+
+  describe "behavior on a 'challengeFinished' message", ->
+    receiveChallengeFinished = -> callOnReceived
+      message: 'challengeFinished'
+      body: {id: mockChallenge.id}
+
+    describe "when no challenge has been active", ->
+      beforeEach ->
+        challengesService._challenge = null
+
+      it "does not update the '_challenge' field", ->
+        receiveChallengeFinished()
+        expect(challengesService._challenge).toEqual null
+
+      it "does not execute callbacks", ->
+        [executed] = []
+
+        challengesService.onChallengeFinished ->
+          executed = true
+        challengesService.onChallengeStarted ->
+          executed = true
+
+        receiveChallengeFinished()
+        expect(executed).not.toBeDefined()
+
+      it "does not reset the '_awaitingCurrentChallenge' field", ->
+        challengesService._awaitingCurrentChallenge = true
+
+        receiveChallengeFinished()
+        expect(challengesService._awaitingCurrentChallenge).toEqual true
+
+    describe "when a challenge with different id has been active", ->
+      [oldChallenge] = []
+
+      beforeEach ->
+        oldChallenge =
+          id: 'dizidisdifferent'
+          name: 'Old one'
+          description: 'Really old one.'
+        challengesService._challenge = oldChallenge
+
+      it "does not unset the '_challenge' field", ->
+        receiveChallengeFinished()
+        expect(challengesService._challenge).toEqual oldChallenge
+
+      it "does not execute callbacks", ->
+        [executed] = []
+
+        challengesService.onChallengeFinished ->
+          executed = true
+        challengesService.onChallengeStarted ->
+          executed = true
+
+        receiveChallengeFinished()
+        expect(executed).not.toBeDefined()
+
+      it "does not reset the '_awaitingCurrentChallenge' field", ->
+        challengesService._awaitingCurrentChallenge = true
+
+        receiveChallengeFinished()
+        expect(challengesService._awaitingCurrentChallenge).toEqual true
+
+    describe "when a challenge with the same id has been active", ->
+      beforeEach ->
+        challengesService._challenge = mockChallenge
+
+      it "unsets the '_challenge' field", ->
+        receiveChallengeFinished()
+        expect(challengesService._challenge).toEqual null
+
+      it "executes callbacks registered with ::onChallengeFinished", ->
+        [executedOnChallengeFinished, executedOnChallengeStarted] = []
+
+        challengesService.onChallengeFinished ->
+          executedOnChallengeFinished = true
+        challengesService.onChallengeStarted ->
+          executedOnChallengeStarted = true
+
+        receiveChallengeFinished()
+        expect(executedOnChallengeFinished).toEqual true
+        expect(executedOnChallengeStarted).not.toBeDefined
+
+      it "does not reset the '_awaitingCurrentChallenge' field", ->
+        challengesService._awaitingCurrentChallenge = true
+
+        receiveChallengeFinished()
+        expect(challengesService._awaitingCurrentChallenge).toEqual true
+
+  describe "behavior on a 'noCurrentChallenge' message", ->
+    receiveNoCurrentChallenge = -> callOnReceived
+      message: 'noCurrentChallenge'
+      body: {}
+
+    describe "when '_challenge' and '_awaitingCurrentChallenge' are set", ->
+      beforeEach ->
+        challengesService._challenge = mockChallenge
+        challengesService._awaitingCurrentChallenge = true
+
+      it "unsets the '_challenge' field", ->
+        receiveNoCurrentChallenge()
+        expect(challengesService._challenge).toEqual null
+
+      it "executes callbacks registered with 'onChallengeFinished'", ->
+        [executedOnChallengeFinished, executedOnChallengeStarted] = []
+
+        challengesService.onChallengeFinished =>
+          executedOnChallengeFinished = true
+        challengesService.onChallengeStarted =>
+          executedOnChallengeStarted = true
+
+        receiveNoCurrentChallenge()
+        expect(executedOnChallengeFinished).toEqual true
+        expect(executedOnChallengeStarted).not.toBeDefined()
+
+      it "resets the '_awaitingCurrentChallenge' field", ->
+        receiveNoCurrentChallenge()
+        expect(challengesService._awaitingCurrentChallenge).toEqual false
+
+    describe "when '_awaitingCurrentChallenge' not set", ->
+      beforeEach ->
+        challengesService._challenge = mockChallenge
+        challengesService._awaitingCurrentChallenge = false
+
+      it "does not unset the '_challenge' field", ->
+        receiveNoCurrentChallenge()
+        expect(challengesService._challenge).toEqual mockChallenge
+
+      it "does not execute any callbacks", ->
+        [executed] = []
+
+        challengesService.onChallengeFinished ->
+          executed = true
+        challengesService.onChallengeStarted ->
+          executed = true
+
+        receiveNoCurrentChallenge()
+        expect(executed).not.toBeDefined()
+
+      it "resets the '_awaitingCurrentChallenge' field", ->
+        receiveNoCurrentChallenge()
+        expect(challengesService._awaitingCurrentChallenge).toEqual false
+
+    describe "when '_awaitingCurrentChallenge' is set, and '_challenge' is null", ->
+      beforeEach ->
+        challengesService._challenge = null
+        challengesService._awaitingCurrentChallenge = true
+
+      it "does not change the '_challenge' field", ->
+        receiveNoCurrentChallenge()
+        expect(challengesService._challenge).toEqual null
+
+      it "does not execute any callbacks", ->
+        [executed] = []
+
+        challengesService.onChallengeFinished ->
+          executed = true
+        challengesService.onChallengeStarted ->
+          executed = true
+
+        receiveNoCurrentChallenge()
+        expect(executed).not.toBeDefined()
+
+      it "resets the '_awaitingCurrentChallenge' field", ->
+        receiveNoCurrentChallenge()
+        expect(challengesService._awaitingCurrentChallenge).toEqual false
+
+  describe "behavior on a solution response", ->
+    using solutionResponseBodiesWithExpectedFeedbacks, (data) ->
+      receiveSolutionResponse = -> callOnReceived
+        message: 'solutionResponse'
+        body: data.responseBody
+
+      it "executes callbacks with correct feedback", ->
+        [actualFeedback] = []
+
+        challengesService.onSolutionFeedback (feedback) =>
+          actualFeedback = feedback
+
+        receiveSolutionResponse()
+        expect(actualFeedback).toEqual data.expectedFeedback
+
+  describe "behavior on a 'teamDetails' message", ->
+    it "executes callbacks registered with ::onTeamDetails", ->
+      [actualDetails] = []
+
+      challengesService.onTeamDetails (details) =>
+        actualDetails = details
+      expectedTeamDetails = name: 'The best team in the world'
+
+      callOnReceived
+        message: 'teamDetails'
+        body: expectedTeamDetails
+      expect(actualDetails).toEqual expectedTeamDetails

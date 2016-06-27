@@ -1,0 +1,25 @@
+# This is an example of how to configure languages (and their runtimes)
+# for the "u2i-hackathon" plugin.
+
+"*":
+  "u2i-hackathon":
+    languages: [
+      {
+        name: "JavaScript (node.js)"
+        extension: "js"
+        execDirectory: "/usr/local/bin"
+        printVersionCommand: "node --version"
+      }
+      {
+        name: "Python"
+        extension: "py"
+        execDirectory: "/usr/local/bin"
+        printVersionCommand: "python --version"
+      }
+      {
+        name: "Ruby"
+        extension: "rb"
+        execDirectory: "/usr/bin"
+        printVersionCommand: "ruby --version"
+      }
+    ]

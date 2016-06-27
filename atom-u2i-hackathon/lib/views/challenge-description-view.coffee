@@ -11,7 +11,7 @@ plainTextToHtml = (text) ->
 module.exports =
   class ChallengeDescriptionView
 
-    constructor: (name, description) ->
+    constructor: (@name, @description) ->
       title = @createTitle name
       htmlEncodedDescription = plainTextToHtml description
 

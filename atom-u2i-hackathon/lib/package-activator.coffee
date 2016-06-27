@@ -9,11 +9,11 @@ class PackageActivator
   # Call this function only when you want to activate a single package and if you don't
   # care that it should be stopped later.
   activatePackage: (packageName) ->
-    return if @packageManager.activePackages[packageName]?
+    return if @packageManager.isPackageActive packageName
 
     # There's no easy way to use PackageManager to force activate a package
     # As of 9.09.2015 this is the way to go
-    pakage = @packageManager.loadPackage(packageName)
+    pakage = @packageManager.loadPackage packageName
 
     throw new Error("Package not installed: '#{packageName}'") unless pakage?
 
@@ -24,11 +24,17 @@ class PackageActivator
   # Multiple call to this function will deactivate previously activated packages
   activatePackages: (packageNames) ->
     @deactivatePackages()
+    @currentPackageNames = []
+    failedPackages = []
 
-    @currentPackageNames = packageNames
+    for packageName in packageNames
+      try
+        @activatePackage packageName
+        @currentPackageNames.push packageName
+      catch
+        failedPackages.push packageName
 
-    for packageName in @currentPackageNames
-      @activatePackage packageName
+    failedPackages: failedPackages
 
   deactivatePackages: ->
     for packageName in @currentPackageNames

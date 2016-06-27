@@ -1,75 +1,85 @@
 ActionCable = require 'actioncable'
-{Emitter} = require 'atom'
+{CompositeDisposable, Emitter} = require 'atom'
 
 module.exports =
 class ChallengesService
-  CONNECTED = 'connected'
-  DISCONNECTED = 'disconnected'
-  INITIALIZED = 'initialized'
-  REJECTED = 'rejected'
-  CHALLENGE_STARTED = 'challengeStarted'
-  CHALLENGE_FINISHED = 'challengeFinished'
-  SOLUTION_RESPONSE = 'solutionResponse'
+  CHALLENGE_STARTED_MESSAGE = 'challengeStarted'
+  CHALLENGE_FINISHED_MESSAGE = 'challengeFinished'
+  SOLUTION_RESPONSE_MESSAGE = 'solutionResponse'
+  NO_CURRENT_CHALLENGE_MESSAGE = 'noCurrentChallenge'
+  TEAM_DETAILS_MESSAGE = 'teamDetails'
 
-  _challenge: null
+  CHALLENGE_STARTED_EVENT = 'challengeStartedEvent'
+  CHALLENGE_FINISHED_EVENT = 'challengeFinishedEvent'
+  SOLUTION_RESPONSE_EVENT = 'solutionResponseEvent'
+  TEAM_DETAILS_EVENT = 'teamDetailsEvent'
 
-  constructor: (cableServerUrl, teamToken) ->
+  constructor: (@_actionCableSubscription) ->
     @_emitter = new Emitter
+    @_disposables = new CompositeDisposable
+    @_challenge = null
+    @_awaitingCurrentChallenge = false
 
-    @onConnected =>
-      @_cableSubscription.perform 'send_current_challenge'
+    @_registerCallbacks()
+
+  _registerCallbacks: ->
+    @_disposables.add @_actionCableSubscription.onConnected =>
+      @_actionCableSubscription.perform 'send_current_challenge'
+      @_awaitingCurrentChallenge = true
+    @_disposables.add @_actionCableSubscription.onReceived (data) =>
+      @_actOnReceivedData data
+
     @onChallengeStarted (@_challenge) =>
     @onChallengeFinished =>
       @_challenge = null
 
-    @_cable = ActionCable.createConsumer cableServerUrl
-    params =
-      channel: 'AtomChannel'
-      token: teamToken
-    @_cableSubscription = @_cable.subscriptions.create params,
-      initialized: =>
-        @_emitter.emit INITIALIZED
-      connected: =>
-        @_emitter.emit CONNECTED
-      rejected: =>
-        @_emitter.emit REJECTED
-      disconnected: =>
-        @_emitter.emit DISCONNECTED
-      received: (data) =>
-        @_emitter.emit data.message, data.body
+  _actOnReceivedData: (data) ->
+    switch data.message
+      when CHALLENGE_STARTED_MESSAGE
+        @_awaitingCurrentChallenge = false
+        newChallenge = data.body
+        if newChallenge.id != @_challenge?.id
+          if @_challenge?
+            @_emitter.emit CHALLENGE_FINISHED_EVENT
+          @_emitter.emit CHALLENGE_STARTED_EVENT, newChallenge
+      when CHALLENGE_FINISHED_MESSAGE
+        if data.body.id == @_challenge?.id
+          @_emitter.emit CHALLENGE_FINISHED_EVENT
+      when SOLUTION_RESPONSE_MESSAGE
+        @_emitter.emit SOLUTION_RESPONSE_EVENT, data.body
+      when NO_CURRENT_CHALLENGE_MESSAGE
+        if @_awaitingCurrentChallenge
+          @_awaitingCurrentChallenge = false
+          if @_challenge
+            @_emitter.emit CHALLENGE_FINISHED_EVENT
+      when TEAM_DETAILS_MESSAGE
+        @_emitter.emit TEAM_DETAILS_EVENT, data.body
 
   destroy: ->
-    @_cableSubscription.unsubscribe()
-    @_cable.connection.close()
     @_emitter.dispose()
+    @_disposables.dispose()
 
   getCurrentChallenge: ->
-    if @_challenge?
-      @_challenge
-    else
-      throw new Error("No challenge active.")
+    @_challenge || throw new Error("No challenge active.")
 
   checkSolution: (outputs, subtractedPoints = 0) ->
-    @_cableSubscription.perform 'solve_challenge',
+    @_actionCableSubscription.perform 'solve_challenge',
       outputs: outputs,
       subtractedPoints: subtractedPoints
 
   updateSubtractedPoints: (points) ->
-    @_cableSubscription.perform 'update_subtracted_points',
+    @_actionCableSubscription.perform 'update_subtracted_points',
       points: points
 
   onChallengeStarted: (callback) ->
-    @_emitter.on CHALLENGE_STARTED, callback
-    @
+    @_emitter.on CHALLENGE_STARTED_EVENT, callback
 
   onChallengeFinished: (callback) ->
-    @_emitter.on CHALLENGE_FINISHED, callback
-    @
+    @_emitter.on CHALLENGE_FINISHED_EVENT, callback
 
   onSolutionFeedback: (callback) ->
-    @_emitter.on SOLUTION_RESPONSE, (response) =>
+    @_emitter.on SOLUTION_RESPONSE_EVENT, (response) =>
       callback(@_transformSolutionResponse(response))
-    @
 
   _transformSolutionResponse: (response) ->
     unless response.requestCorrect
@@ -88,22 +98,6 @@ class ChallengesService
       when 'already_solved'
         "You've already submitted a correct solution!"
 
-  # ### Wrapped ActionCable events ###
-
-  onSubscriptionInitialized: (callback) ->
-    @_emitter.on INITIALIZED, callback
-    @
-
-  onConnected: (callback) ->
-    @_emitter.on CONNECTED, callback
-    @
-
-  onRejected: (callback) ->
-    @_emitter.on REJECTED, callback
-    @
-
-  onDisconnected: (callback) ->
-    @_emitter.on DISCONNECTED, callback
-    @
-
-  ### End of ActionCable events ###
+  onTeamDetails: (callback) ->
+    @_emitter.on TEAM_DETAILS_EVENT, (teamDetails) =>
+      callback(teamDetails)

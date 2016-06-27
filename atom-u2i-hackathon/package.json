@@ -35,9 +35,13 @@
   },
   "dependencies": {
     "actioncable": "^5.0.0-beta1-3",
+    "atom-message-panel": "^1.2.4",
+    "jsonschema": "^1.1.0",
+    "mkdirp": "^0.5.1",
     "moment": "^2.11.2"
   },
   "devDependencies": {
-    "jasmine-data-provider": "^2.1.0"
+    "jasmine-data-provider": "^2.1.0",
+    "temp": "^0.8.3"
   }
 }
