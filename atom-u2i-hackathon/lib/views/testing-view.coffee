@@ -6,7 +6,7 @@ inputRowHtml = '
 <button type="button" class="btn btn-xs testing-view-remove-button octicon(remove-close)"></button>'
 
 testingViewInnerHtml = '
-<div class="testing-view-header">Test your code!</div>
+<div class="testing-view-header"><br>CTRL+ENTER to submit the solution!<br><br><br>Test your code below!</div>
 <div class="testing-view-body">
   <button type="button" class="btn" id="testing-view-add-button">Add input</button>
   <div id="testing-view-inputs"></div>
