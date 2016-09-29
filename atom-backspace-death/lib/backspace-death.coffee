@@ -29,6 +29,7 @@ module.exports = BackspaceDeath =
   _deletesText: (event) ->
     (event.keyCode in KEY_CODES.DELETING) or
       (event.keyCode in KEY_CODES.WITH_ALT and event.altKey) or
+      (event.keyCode in KEY_CODES.WITH_ALT and event.ctrlKey) or
       (event.keyCode == KEY_CODES.K and event.ctrlKey) or
       (event.keyCode == KEY_CODES.X and event.metaKey)
 

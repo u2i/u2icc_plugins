@@ -2,13 +2,17 @@
   "name": "backspace-death",
   "main": "./lib/backspace-death",
   "version": "0.0.0",
-  "description": "Deletes the whole editor content when a user presses backspace.",
+  "description": "Deletes the whole editor's content when a user presses backspace.",
   "keywords": [
+    "mirror",
+    "u2icc",
+    "coding challenge",
+    "fun"
   ],
   "activationCommands": {
     "atom-workspace": "backspace-death:activate"
   },
-  "repository": "https://github.com/atom/backspace-death",
+  "repository": "https://github.com/u2i/backspace-death",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
