@@ -34,7 +34,7 @@
     }
   },
   "dependencies": {
-    "actioncable": "^5.0.0-beta1-3",
+    "actioncable": "^5.0.0",
     "atom-message-panel": "^1.2.4",
     "jsonschema": "^1.1.0",
     "mkdirp": "^0.5.1",
