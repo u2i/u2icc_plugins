@@ -2,7 +2,6 @@
 
 module.exports = MirrorMode =
   _isActive: false
-  _handler: null
 
   activate: ->
     @_start()
@@ -11,14 +10,14 @@ module.exports = MirrorMode =
     if @_isActive then return
     console.log 'MirrorMode started!'
     @_isActive = true
-    @_handler = (_) => @_mirrorEditor()
-
-    document.addEventListener 'keyup', @_handler
+    @_mirrorEditor()
 
   _mirrorEditor: ->
-    editors = document.querySelectorAll '.editor.is-focused'
-    for editor in editors
-      editor.style['transform'] = 'rotateY(180deg)'
+    setTimeout () ->
+      editors = document.querySelectorAll '.editor.is-focused'
+      for editor in editors
+        editor.style['transform'] = 'rotateY(180deg)'
+    , 1500
 
   deactivate: ->
     @_stop()
@@ -26,11 +25,8 @@ module.exports = MirrorMode =
   _stop: ->
     console.log 'MirrorMode stopped!'
     unless @_isActive then return
-
-    document.removeEventListener 'keyup', @_handler
     @_resetMirrorMode()
     @_isActive = false
-    @_handler = null
 
   _resetMirrorMode: ->
     editors = document.querySelectorAll '.editor'

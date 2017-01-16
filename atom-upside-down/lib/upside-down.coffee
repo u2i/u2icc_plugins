@@ -11,14 +11,16 @@ module.exports = UpsideDown =
     if @_isActive then return
     console.log 'UpsideDown started!'
     @_isActive = true
-    @_handler = (_) => @_flipIt()
-
-    document.addEventListener 'keyup', @_handler
+    @_flipIt()
 
   _flipIt: ->
-    editors = document.querySelectorAll '.editor.is-focused'
-    for editor in editors
-      editor.style['transform'] = 'rotateX(180deg)'
+    setTimeout () ->
+      editors = document.querySelectorAll '.editor'
+      console.log editors
+      for editor in editors
+        console.log editor
+        editor.style['transform'] = 'rotateX(180deg)'
+    , 2000
 
   deactivate: ->
     @_stop()
@@ -27,7 +29,6 @@ module.exports = UpsideDown =
     console.log 'UpsideDown stopped!'
     unless @_isActive then return
 
-    document.removeEventListener 'keyup', @_handler
     @_resetUpsideDown()
     @_isActive = false
     @_handler = null

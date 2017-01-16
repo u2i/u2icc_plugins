@@ -9,6 +9,7 @@ arraylength=${#array[@]}
 for (( i=1; i<${arraylength}+1; i++ ));
 do
   cd ./${array[$i-1]}
+  rm -fr node_modules
   npm install
   cd ..
   apm link -d ${array[$i-1]}

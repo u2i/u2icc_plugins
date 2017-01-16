@@ -39,9 +39,9 @@ module.exports = RandomFontSize =
     unless @_isActive then return
 
     @_view.removeEventListener 'keydown', @_listener
+    @_listeners = []
     @_resetFontSize()
     @_isActive = false
-    @_handler = null
 
   _resetFontSize: ->
     editors = document.querySelectorAll '.editor'

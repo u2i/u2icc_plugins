@@ -8,23 +8,25 @@ for i in [1..41]
 
 module.exports = MadSounds =
   _isActive: false
-  _handleKeyUp: null
+  _editorEventSubscription: null
+  _listeners: []
+  _listener: null
+  _view: null
 
   activate: ->
-    # atom.commands.add 'atom-workspace', 'mad-sounds:toggle', => @toggle()
-    # console.log 'MadSounds activated!'
     @_start()
-
-  # toggle: ->
-  #   console.log 'MadSounds was toggled!'
-  #   if @_isActive then @_stop() else @_start()
 
   _start: ->
     return if @_isActive
     @_isActive = true
-    console.log 'MadSounds started!'
-    @_handleKeyUp = (_) => @_playSound()
-    document.addEventListener 'keyup', @_handleKeyUp
+    @_editorEventSubscription = atom.workspace.observeTextEditors (editor) =>
+      @_view = atom.views.getView editor
+      @_listener = (event) => @_handleKeyUp editor, event
+      @_view.addEventListener 'keyup', @_listener
+      @_listeners.push [@_view, @_listener]
+
+  _handleKeyUp: (editor, event) ->
+    if @_playSound event then @_obliterate editor
 
   _playSound: ->
     if @_isActive
@@ -49,7 +51,9 @@ module.exports = MadSounds =
     return unless @_isActive
     console.log 'MadSounds stopped!'
     @_isActive = false
-    document.removeEventListener 'keyup', @_handleKeyUp
+    @_view.removeEventListener 'keyup', @_listener
+    @_listeners = []
+    
 
   serialize: ->
     isActive: @_isActive

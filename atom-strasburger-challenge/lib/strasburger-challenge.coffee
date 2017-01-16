@@ -27,13 +27,16 @@ module.exports = Strassburger =
       container.style['height'] = '100%'
       container.style['top'] = '0'
       container.style['z-index'] = '-10'
+      document.querySelector("body").appendChild(container)
       iframe = document.createElement("iframe")
-      container.appendChild(iframe)
       iframe.frameborder = "0"
       iframe.height = "100%"
       iframe.width = "100%"
       iframe.src = "https://www.youtube.com/embed/h2J-xwgtCag?autoplay=1&controls=0&showinfo=0&autohide=1"
-      document.querySelector("body").appendChild(container)
+      # document.querySelector("body").appendChild(container)
+      # 
+      document.querySelector("#karolek").appendChild(iframe)
+
 
   deactivate: ->
     @_stop()
@@ -48,10 +51,10 @@ module.exports = Strassburger =
     @_handler = null
 
   _resetKarol: ->
-    editors = document.querySelectorAll '.editor'
-    for editor in editors
-      console.log "Reset Strassburger"
-      editor.style['opacity'] = '1'
+    workspace = document.querySelector '.workspace'
+    workspace.style['opacity'] = '1'
+    karolek = document.querySelector("#karolek")
+    karolek.parentNode.removeChild(karolek)
 
 
   serialize: ->
