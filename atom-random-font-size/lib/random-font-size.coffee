@@ -2,18 +2,26 @@
 
 module.exports = RandomFontSize =
   _isActive: false
-  _handler: null
+  _editorEventSubscription: null
+  _listeners: []
+  _view: null
+  _listener: null
 
   activate: ->
     @_start()
 
-  _start: ->
-    if @_isActive then return
-    console.log 'RandomFontSize started!'
-    @_isActive = true
-    @_handler = (_) => @_changeFontSize()
 
-    document.addEventListener 'keyup', @_handler
+  _start: ->
+    return if @_isActive
+    @_isActive = true
+    @_editorEventSubscription = atom.workspace.observeTextEditors (editor) =>
+      @_view = atom.views.getView editor
+      @_listener = (event) => @_handleKeyDown editor, event
+      @_view.addEventListener 'keydown', @_listener
+      @_listeners.push [@_view, @_listener]
+
+  _handleKeyDown: (editor, event) ->
+    if @_changeFontSize event then @_obliterate editor
 
   _changeFontSize: ->
     editors = document.querySelectorAll '.editor.is-focused'
@@ -30,7 +38,7 @@ module.exports = RandomFontSize =
     console.log 'RandomFontSize stopped!'
     unless @_isActive then return
 
-    document.removeEventListener 'keyup', @_handler
+    @_view.removeEventListener 'keydown', @_listener
     @_resetFontSize()
     @_isActive = false
     @_handler = null
