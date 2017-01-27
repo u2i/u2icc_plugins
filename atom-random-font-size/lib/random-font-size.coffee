@@ -1,7 +1,7 @@
 {CompositeDisposable} = require 'atom'
 
 module.exports = RandomFontSize =
-  _isActive: false
+  _randomFontSizeIsActive: false
   _editorEventSubscription: null
   _listeners: []
   _view: null
@@ -12,8 +12,8 @@ module.exports = RandomFontSize =
 
 
   _start: ->
-    return if @_isActive
-    @_isActive = true
+    return if @_randomFontSizeIsActive
+    @_randomFontSizeIsActive = true
     @_editorEventSubscription = atom.workspace.observeTextEditors (editor) =>
       @_view = atom.views.getView editor
       @_listener = (event) => @_handleKeyDown editor, event
@@ -21,7 +21,7 @@ module.exports = RandomFontSize =
       @_listeners.push [@_view, @_listener]
 
   _handleKeyDown: (editor, event) ->
-    if @_changeFontSize event then @_obliterate editor
+    @_changeFontSize event
 
   _changeFontSize: ->
     editors = document.querySelectorAll '.editor.is-focused'
@@ -36,12 +36,12 @@ module.exports = RandomFontSize =
 
   _stop: ->
     console.log 'RandomFontSize stopped!'
-    unless @_isActive then return
+    unless @_randomFontSizeIsActive then return
 
     @_view.removeEventListener 'keydown', @_listener
     @_listeners = []
     @_resetFontSize()
-    @_isActive = false
+    @_randomFontSizeIsActive = false
 
   _resetFontSize: ->
     editors = document.querySelectorAll '.editor'
@@ -50,4 +50,4 @@ module.exports = RandomFontSize =
       editor.style['font-size'] = '14px'
 
   serialize: ->
-    isActive: @_isActive
+    isActive: @_randomFontSizeIsActive

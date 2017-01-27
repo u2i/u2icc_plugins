@@ -26,7 +26,7 @@ module.exports = MadSounds =
       @_listeners.push [@_view, @_listener]
 
   _handleKeyUp: (editor, event) ->
-    if @_playSound event then @_obliterate editor
+    @_playSound event
 
   _playSound: ->
     if @_isActive
