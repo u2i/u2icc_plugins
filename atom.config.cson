@@ -1,0 +1,23 @@
+  "u2i-hackathon":
+    cableServerUrl: "ws://localhost:3032/cable"
+    languages: [
+      {
+        name: "JavaScript (node.js)"
+        extension: "js"
+        execDirectory: "/usr/local/bin"
+        printVersionCommand: "node --version"
+      }
+      {
+        name: "Python"
+        extension: "py"
+        execDirectory: "/usr/local/bin"
+        printVersionCommand: "python --version"
+      }
+      {
+        name: "Ruby"
+        extension: "rb"
+        execDirectory: "/Users/user/.rvm/rubies/ruby-2.3.0/bin"
+        printVersionCommand: "ruby --version"
+      }
+    ]
+    token: "winterns"
