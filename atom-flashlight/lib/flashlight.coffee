@@ -27,13 +27,12 @@ module.exports = Flashlight =
     styles = '.editor .lines .line * { color: #000; }'
     styles += ' .editor lines { background: transparent; }'
     styles += ' .editor .highlights * { color: #000; }'
-    styles += ' .editor { color: #000; background-color: #000; background-image: url(/Users/jacekkrecioch/u2iCodingChallenge/atom-flashlight/images/flashlight.png); background-repeat: no-repeat; }'
+    styles += ' .editor { color: #000; background-color: #000; background-image: url(https://s3.amazonaws.com/coding.challenge/images/flashlight.png); background-repeat: no-repeat; }'
     styles += ' atom-text-editor.editor .selection .region { background-color: #000; }'
     css.appendChild( document.createTextNode(styles) )
     document.getElementsByTagName("head")[0].appendChild(css)
 
     setTimeout () ->
-      console.log 'asd'
       editor = document.querySelectorAll '.editor'
       lines = document.querySelector '.editor:nth-child(1) .lines'
       lines.style['background'] = "transparent"
