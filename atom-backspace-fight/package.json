@@ -1,0 +1,22 @@
+{
+  "name": "backspace-fight",
+  "main": "./lib/backspace-fight",
+  "version": "0.0.0",
+  "description": "Removes one letter every 1 second if no keystroke",
+  "keywords": [
+    "keyboard",
+    "u2icc",
+    "coding challenge",
+    "fun"
+  ],
+  "activationCommands": {
+    "atom-workspace": "backspace-fight:activate"
+  },
+  "repository": "https://github.com/u2i/atom-backspace-fight",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}
