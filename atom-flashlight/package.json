@@ -1,0 +1,22 @@
+{
+  "name": "flashlight",
+  "main": "./lib/flashlight",
+  "version": "0.0.0",
+  "description": "Flashlight.",
+  "keywords": [
+    "flashlight",
+    "u2icc",
+    "coding challenge",
+    "fun"
+  ],
+  "activationCommands": {
+    "atom-workspace": "flashlight:activate"
+  },
+  "repository": "https://github.com/u2i/atom-flashlight",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

@@ -1,6 +1,6 @@
 #!/bin/bash
 ## declare an array variable
-declare -a array=("atom-backspace-death" "atom-blank-keyboard" "atom-dvorak" "atom-script" "atom-mirror-mode" "atom-upside-down" "atom-mad-sounds" "atom-random-color" "atom-random-font-size" "atom-strasburger-challenge" "atom-u2i-hackathon" "atom-touchpad")
+declare -a array=("atom-backspace-death" "atom-flashlight" "atom-blank-keyboard" "atom-dvorak" "atom-script" "atom-mirror-mode" "atom-upside-down" "atom-mad-sounds" "atom-random-color" "atom-random-font-size" "atom-strasburger-challenge" "atom-u2i-hackathon" "atom-touchpad")
 
 # get length of an array
 arraylength=${#array[@]}
