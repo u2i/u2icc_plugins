@@ -12,8 +12,8 @@ module.exports =
   class ChallengeDescriptionView
 
     constructor: (@name, @description) ->
-      title = @createTitle name
-      htmlEncodedDescription = plainTextToHtml description
+      title = @createTitle @name
+      htmlEncodedDescription = plainTextToHtml @description
 
       @messages = new MessagePanelView
         title: title
