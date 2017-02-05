@@ -1,43 +1,35 @@
 {CompositeDisposable} = require 'atom'
 
 module.exports = UpsideDown =
-  _isActive: false
-  _handler: null
+  _upsideDownIsActive: false
 
   activate: ->
     @_start()
 
   _start: ->
-    if @_isActive then return
+    if @_upsideDownIsActive then return
     console.log 'UpsideDown started!'
-    @_isActive = true
+    @_upsideDownIsActive = true
     @_flipIt()
 
   _flipIt: ->
-    setTimeout () ->
-      editors = document.querySelectorAll '.editor'
-      console.log editors
-      for editor in editors
-        console.log editor
-        editor.style['transform'] = 'rotateX(180deg)'
-    , 2000
+    document.querySelector('body').style['transform'] = 'rotateZ(180deg)'
 
   deactivate: ->
     @_stop()
 
   _stop: ->
     console.log 'UpsideDown stopped!'
-    unless @_isActive then return
+    unless @_upsideDownIsActive then return
 
     @_resetUpsideDown()
-    @_isActive = false
+    @_upsideDownIsActive = false
     @_handler = null
 
   _resetUpsideDown: ->
-    editors = document.querySelectorAll '.editor'
-    for editor in editors
-      console.log "Reset Upside Down"
-      editor.style['transform'] = 'rotateX(180deg)'
+
+    document.querySelector('body').style['transform'] = 'rotateZ(180deg)'
+    console.log "Reset Upside Down"
 
   serialize: ->
-    isActive: @_isActive
+    isActive: @_upsideDownIsActive
