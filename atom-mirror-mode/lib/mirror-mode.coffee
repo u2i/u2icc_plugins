@@ -1,38 +1,32 @@
 {CompositeDisposable} = require 'atom'
 
 module.exports = MirrorMode =
-  _isActive: false
+  _mirrorModeIsActive: false
 
   activate: ->
     @_start()
 
   _start: ->
-    if @_isActive then return
+    if @_mirrorModeIsActive then return
     console.log 'MirrorMode started!'
-    @_isActive = true
+    @_mirrorModeIsActive = true
     @_mirrorEditor()
 
   _mirrorEditor: ->
-    setTimeout () ->
-      editors = document.querySelectorAll '.editor.is-focused'
-      for editor in editors
-        editor.style['transform'] = 'rotateY(180deg)'
-    , 1500
+    document.querySelector('body').style['transform'] = 'rotateY(180deg)'
 
   deactivate: ->
     @_stop()
 
   _stop: ->
     console.log 'MirrorMode stopped!'
-    unless @_isActive then return
+    unless @_mirrorModeIsActive then return
     @_resetMirrorMode()
-    @_isActive = false
+    @_mirrorModeIsActive = false
 
   _resetMirrorMode: ->
-    editors = document.querySelectorAll '.editor'
-    for editor in editors
-      console.log "Reset Mirror Mode"
-      editor.style['transform'] = 'rotateY(0deg)'
+    console.log "Reset Mirror Mode"
+    document.querySelector('body').style['transform'] = 'rotateY(0deg)'
 
   serialize: ->
-    isActive: @_isActive
+    isActive: @_mirrorModeIsActive

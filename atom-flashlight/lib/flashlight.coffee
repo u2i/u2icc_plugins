@@ -39,7 +39,6 @@ module.exports = Flashlight =
       lines.style['background'] = "transparent"
       cont = lines.querySelector('div:first-child')
       cont.classList.add('thisCont')
-      # console.log( document.querySelectorAll(".thisCont > div") )
       conts = document.querySelectorAll(".thisCont > div")
       i = 0
       while i < conts.length
