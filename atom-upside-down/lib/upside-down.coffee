@@ -28,7 +28,7 @@ module.exports = UpsideDown =
 
   _resetUpsideDown: ->
 
-    document.querySelector('body').style['transform'] = 'rotateZ(180deg)'
+    document.querySelector('body').style['transform'] = 'rotateZ(0deg)'
     console.log "Reset Upside Down"
 
   serialize: ->
