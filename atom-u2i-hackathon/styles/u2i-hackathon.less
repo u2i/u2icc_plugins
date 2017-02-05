@@ -2,19 +2,16 @@
 //
 // See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
 // for a full listing of what's available.
-@import "ui-variables";
-@import "octicon-mixins";
+@import 'ui-variables';
+@import 'octicon-mixins';
 
-@import "views/connection-status-view";
-@import "views/challenge-solved-view";
+@import 'views/connection-status-view';
+@import 'views/challenge-solved-view';
 
 @panel-width: 300px;
 
-.u2i-hackathon {
-}
-
 .challenge-title {
-  font-size: 20px
+  font-size: 20px;
 }
 
 .challenge-description {
@@ -22,11 +19,13 @@
 }
 
 .testing-view {
-  width: @panel-width;
+  background: url('https://s3.amazonaws.com/coding.challenge/images/u2icc.png') bottom center no-repeat;
+  background-size: contain;
   height: inherit;
   overflow-y: auto;
-  resize: horizontal;
   padding: 5px;
+  resize: horizontal;
+  width: @panel-width;
 }
 
 .testing-view-header {
