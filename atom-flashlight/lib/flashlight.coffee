@@ -24,25 +24,32 @@ module.exports = Flashlight =
     css = document.createElement('style')
     css.type = 'text/css'
     css.id = 'flashlight'
-    styles = '.editor .lines .line * { color: #000; }'
+    styles = '.editor .lines .line * { color: #000 !important; }'
     styles += ' .editor lines { background: transparent; }'
-    styles += ' .editor .highlights * { color: #000; }'
-    styles += ' .editor { color: #000; background-color: #000; background-image: url(https://s3.amazonaws.com/coding.challenge/images/flashlight.png); background-repeat: no-repeat; }'
+    styles += 'atom-text-editor .line.cursor-line {background: transparent !important;}'
+    styles += ' .editor .highlights * { color: #000 !important; }'
+    styles += ' .editor { color: #000 !important; background-color: #000; background-image: url(https://s3.amazonaws.com/coding.challenge/images/flashlight.png); background-repeat: no-repeat; }'
     styles += ' atom-text-editor.editor .selection .region { background-color: #000; }'
     css.appendChild( document.createTextNode(styles) )
     document.getElementsByTagName("head")[0].appendChild(css)
 
-    setTimeout () ->
+    setInterval () ->
       editor = document.querySelectorAll '.editor'
       lines = document.querySelector '.editor:nth-child(1) .lines'
       lines.style['background'] = "transparent"
-      cont1 = lines.querySelector 'div:nth-child(1) > div:nth-child(1)'
-      cont1.style['background'] = "transparent"
-      cont2 = document.querySelector "body > atom-workspace > atom-workspace-axis > atom-workspace-axis > atom-pane-container > atom-pane > div > atom-text-editor > div > div > div.scroll-view > div.lines > div:nth-child(1) > div:nth-child(2)"
-      cont2.style['background'] = "transparent"
+      cont = lines.querySelector('div:first-child')
+      cont.classList.add('thisCont')
+      # console.log( document.querySelectorAll(".thisCont > div") )
+      conts = document.querySelectorAll(".thisCont > div")
+      i = 0
+      while i < conts.length
+        conts[i].style['background'] = 'transparent'
+        i++
+      editor[0].removeEventListener "mousemove", (e) ->
+        editor[0].style['background-position'] = (e.layerX - 30)+"px "+ (e.layerY - 60)+"px"
       editor[0].addEventListener "mousemove", (e) ->
         editor[0].style['background-position'] = (e.layerX - 30)+"px "+ (e.layerY - 60)+"px"
-    , 2000
+    , 100
 
   _removeSyles: ->
     fl = document.getElementById "flashlight"
