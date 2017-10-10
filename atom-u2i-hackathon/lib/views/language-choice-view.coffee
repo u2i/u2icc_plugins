@@ -13,11 +13,19 @@ class LanguageChoiceView
 
     description = document.createElement 'span'
     description.classList.add 'top-header'
-    description.textContent = 'Pick a language for the next challenge:'
+    description.textContent = 'Pick a language for this challenge:'
+
+    @changeLanguage = document.createElement 'button'
+    @changeLanguage.classList.add 'change-language'
+    @changeLanguage.innerText = 'Change Language'
+    
+
     @element.appendChild description
 
     @comboBox = null
     @createComboBox()
+    
+    @element.appendChild @changeLanguage
 
   createComboBox: ->
     span = document.createElement 'span'
@@ -57,3 +65,6 @@ class LanguageChoiceView
 
   getElement: ->
     @element
+
+  getButton: ->
+    @changeLanguage

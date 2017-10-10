@@ -108,6 +108,7 @@ module.exports =
     @subscriptions = new CompositeDisposable
     @subscriptions.add atom.commands.add 'atom-workspace',
       'u2i-hackathon:run': => @runChallenge()
+    
 
     challengeSolvedView = new ChallengeSolvedView
     @challengeSolvedPanel = atom.workspace.addTopPanel

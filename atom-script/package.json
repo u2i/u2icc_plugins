@@ -319,6 +319,7 @@
   },
   "dependencies": {
     "ansi-to-html": ">0.1.0",
+    "uuid": ">0.1.0",
     "node-uuid": "~1.4.0",
     "strip-ansi": "^3.0.0",
     "underscore": "~1.5.2",
