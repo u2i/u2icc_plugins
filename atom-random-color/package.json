@@ -3,8 +3,7 @@
   "main": "./lib/random-color",
   "version": "0.0.0",
   "description": "Changes font and background colors every 10 seconds.",
-  "keywords": [
-  ],
+  "keywords": [],
   "activationCommands": {
     "atom-workspace": "random-color:activate"
   },
@@ -13,6 +12,5 @@
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

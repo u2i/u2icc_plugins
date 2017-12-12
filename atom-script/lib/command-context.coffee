@@ -9,11 +9,12 @@ class CommandContext
   @build: (runtime, runOptions, codeContext) ->
     commandContext = new CommandContext
     commandContext.options = runOptions
+    commandOverwrites = (atom.config.get 'u2i-hackathon.commandOverwrites')
 
     try
       if not runOptions.cmd? or runOptions.cmd is ''
         # Precondition: lang? and lang of grammarMap
-        commandContext.command = codeContext.shebangCommand() or grammarMap[codeContext.lang][codeContext.argType].command
+        commandContext.command = codeContext.shebangCommand() or commandOverwrites[codeContext.argType][codeContext.lang].command or grammarMap[codeContext.lang][codeContext.argType].command
       else
         commandContext.command = runOptions.cmd
 
@@ -22,9 +23,10 @@ class CommandContext
     catch error
       runtime.modeNotSupported(codeContext.argType, codeContext.lang)
       return false
-
     try
       commandContext.args = buildArgsArray codeContext
+      if commandOverwrites[codeContext.argType][codeContext.lang].prependArgs
+        commandContext.args = commandOverwrites[codeContext.argType][codeContext.lang].prependArgs.concat(commandContext.args)
     catch errorSendByArgs
       runtime.didNotBuildArgs errorSendByArgs
       return false

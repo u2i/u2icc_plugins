@@ -1,23 +1,36 @@
+"*":
   "u2i-hackathon":
-    cableServerUrl: "ws://localhost:3032/cable"
+    cableServerUrl: "ws://localhost:3000/cable"
+    commandOverwrites:
+      "File Based":
+        JavaScript:
+          command: "docker"
+          prependArgs: ['run', '--rm', '-w/', '-v/tmp/:/tmp/', 'node', 'node']
+        Python:
+          command: "docker"
+          prependArgs: ['run', '--rm', '-w/', '-v/tmp/:/tmp/', 'python', 'python']
+        Ruby:
+          command: "docker"
+          prependArgs: ['run', '--rm', '-w/', '-v/tmp/:/tmp/', 'ruby', 'ruby']
     languages: [
       {
         name: "JavaScript (node.js)"
         extension: "js"
-        execDirectory: "/usr/local/bin"
-        printVersionCommand: "node --version"
+        execDirectory: "/tmp/"
+        printVersionCommand: "docker run --rm node node --version"
       }
       {
         name: "Python"
         extension: "py"
-        execDirectory: "/usr/local/bin"
-        printVersionCommand: "python --version"
+        execDirectory: "/tmp/"
+        printVersionCommand: "docker run --rm python python --version"
       }
       {
         name: "Ruby"
         extension: "rb"
-        execDirectory: "/Users/user/.rvm/rubies/ruby-2.3.0/bin"
-        printVersionCommand: "ruby --version"
+        execDirectory: "/tmp/"
+        printVersionCommand: "docker run --rm ruby ruby --version"
       }
     ]
+    solutionFolder: "/tmp/u2icc-solutions/"
     token: "winterns"

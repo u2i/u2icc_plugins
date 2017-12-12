@@ -26,6 +26,9 @@ module.exports =
     solutionFolder:
       type: 'string'
       default: '/tmp/u2icc-solutions'
+    commandOverwrites:
+      type: 'object'
+      default: {}
     languages:
       type: 'array'
       default: [
@@ -60,6 +63,7 @@ module.exports =
 
   activate: (state) ->
     console.log("Activating u2i-hackathon!!!")
+
     @packageActivator = new PackageActivator
     @notificationManager = atom.notifications
     snippetProvider = new SnippetProvider
@@ -70,6 +74,9 @@ module.exports =
     teamToken = (atom.config.get 'u2i-hackathon.token')
     cableServerUrl = (atom.config.get 'u2i-hackathon.cableServerUrl')
     solutionFolder = (atom.config.get 'u2i-hackathon.solutionFolder')
+
+    console.log("Connecting to: " +  cableServerUrl)
+    console.log("Solution folder: " + solutionFolder)
 
     @actionCableSubscription = new ActionCableSubscription cableServerUrl, teamToken
     @challengesService = new ChallengesService @actionCableSubscription
@@ -199,6 +206,7 @@ module.exports =
     @challengeSolvedPanel?.destroy()
 
   consumeBlankRuntime: (runtime) ->
+    console.log("CONSUME BLANK");
     @runtime = runtime
     @workspaceOrganizer.createTestingView runtime
 
