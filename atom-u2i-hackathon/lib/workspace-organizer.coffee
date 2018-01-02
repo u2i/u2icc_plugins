@@ -71,9 +71,15 @@ class WorkspaceOrganizer
     else
       @_openNewFile challenge, teamId
 
+  getCurrentSolution: ->
+    atom.workspace.getActiveTextEditor().getText()
+
+  chosenLanguageExtension: ->
+    @_languageChoiceView.getChosenLanguageExtension()
+
   _findExistingFileName: (challenge, teamId) ->
     fileExtension = @_languageChoiceView.getChosenLanguageExtension()
-    namePattern = new RegExp "^\\d{8}-\\d{6}-#{challenge.id}-#{teamId}.#{fileExtension}\\..+$"
+    namePattern = new RegExp "^\\d{8}-\\d{6}-#{challenge.id}-#{teamId}.#{fileExtension}$"
     fileNames = fs.readdirSync @solutionFolder
     fileNames.find (name) -> namePattern.test name
 
