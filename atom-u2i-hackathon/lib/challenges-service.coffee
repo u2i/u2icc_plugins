@@ -62,9 +62,11 @@ class ChallengesService
   getCurrentChallenge: ->
     @_challenge || throw new Error("No challenge active.")
 
-  checkSolution: (outputs, subtractedPoints = 0) ->
+  checkSolution: (outputs, code, chosenLanguage, subtractedPoints = 0) ->
     @_actionCableSubscription.perform 'solve_challenge',
       outputs: outputs,
+      code: code,
+      language: chosenLanguage,
       subtractedPoints: subtractedPoints
 
   updateSubtractedPoints: (points) ->

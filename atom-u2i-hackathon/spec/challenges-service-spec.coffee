@@ -94,18 +94,22 @@ describe 'ChallengesService', ->
   describe '::checkSolution', ->
     it "performs 'solve_challenge' with outputs and 0 subtracted points", ->
       outputs = ['a', 'b', 'c']
+      code = "console.log(solution)"
+      chosenLanguage = "js"
 
-      challengesService.checkSolution outputs
+      challengesService.checkSolution outputs, code, chosenLanguage
       expect(mockActionCableSubscription.perform).toHaveBeenCalledWith(
-        'solve_challenge', outputs: outputs, subtractedPoints: 0)
+        'solve_challenge', outputs: outputs, subtractedPoints: 0, code: code, language: chosenLanguage)
 
     it "performs 'solve_challenge' with outputs and specified subtracted points", ->
       outputs = ['a', 'b', 'c']
       subtractedPoints = 50
+      code = "console.log(solution)"
+      chosenLanguage = "js"
 
-      challengesService.checkSolution outputs, subtractedPoints
+      challengesService.checkSolution outputs, code, chosenLanguage, subtractedPoints
       expect(mockActionCableSubscription.perform).toHaveBeenCalledWith(
-        'solve_challenge', outputs: outputs, subtractedPoints: subtractedPoints)
+        'solve_challenge', outputs: outputs, subtractedPoints: subtractedPoints, code: code, language: chosenLanguage)
 
     using [true, false], (performResult) ->
       it "returns the result of perform", ->

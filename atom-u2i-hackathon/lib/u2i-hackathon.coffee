@@ -183,7 +183,9 @@ module.exports =
           "Error while checking your solution:\n" + error.message)
 
   onOutputs: (outputs) ->
-    requestSuccessful = @challengesService.checkSolution outputs
+    code = @workspaceOrganizer.getCurrentSolution()
+    chosenLanguage = @workspaceOrganizer.chosenLanguageExtension()
+    requestSuccessful = @challengesService.checkSolution outputs, code, chosenLanguage
     unless requestSuccessful
       @notificationManager.addWarning CANNOT_CONNECT_MSG
 
