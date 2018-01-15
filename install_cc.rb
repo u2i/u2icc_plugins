@@ -3,14 +3,14 @@ require 'fileutils'
 require 'digest'
 
 ##CONFIG:
-TEAM_TOKEN = 'winterns'
+TEAM_TOKEN = (ENV['TEAM_TOKEN'] || 'winterns').strip
 
 RUBY_INTERPRETER_VERSION = '2.4.2'
 NODE_VERSION             = '9.2.0'
 PYTHON_VERSION           = '2.7.14'
 # GO_VERSION               = '1.9.2'
 
-CABLE_SERVER_URL = 'ws://localhost:3000/cable'
+CABLE_SERVER_URL = (ENV['CABLE_SERVER_URL'] || 'ws://localhost:3000/cable').strip
 
 PLUGINS_TO_INSTALL = %w[
   atom-backspace-death
@@ -206,10 +206,21 @@ end
 
 def run
   atom_cmd = "ATOM_HOME=#{ATOM_HOME} #{File.join(LOCAL_ATOM_PATH, ATOM_EXECUTABLE)} -d"
-  pid = spawn(atom_cmd)
+  pid      = spawn(atom_cmd)
   puts "Running Atom. PID: #{pid}"
   Process.detach(pid)
 end
 
-install
-run
+case ARGV[0]
+  when 'run'
+    run
+  when 'install'
+    install
+    run
+  else
+    puts <<-INFO
+      USAGE:
+        TEAM_TOKEN='winterns' CABLE_SERVER_URL='ws://localhost:3000/cable' ruby install_cc.rb install
+        ruby install_cc.rb run
+    INFO
+end
