@@ -19,7 +19,6 @@ class CommandContext
         commandContext.command = runOptions.cmd
 
       buildArgsArray = grammarMap[codeContext.lang][codeContext.argType].args
-
     catch error
       runtime.modeNotSupported(codeContext.argType, codeContext.lang)
       return false

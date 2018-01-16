@@ -206,7 +206,6 @@ module.exports =
     @challengeSolvedPanel?.destroy()
 
   consumeBlankRuntime: (runtime) ->
-    console.log("CONSUME BLANK");
     @runtime = runtime
     @workspaceOrganizer.createTestingView runtime
 

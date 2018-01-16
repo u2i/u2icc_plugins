@@ -88,13 +88,13 @@ ATOM_CONFIG = <<CSON
       "File Based":
         JavaScript:
           command: "docker"
-          prependArgs: ['run', '--rm', '-w/', '-v/tmp/:/tmp/', 'node', 'node']
+          prependArgs: ['run', '--rm', '-i', '-w/', '-v/tmp/:/tmp/', 'node', 'node']
         Python:
           command: "docker"
-          prependArgs: ['run', '--rm', '-w/', '-v/tmp/:/tmp/', 'python', 'python']
+          prependArgs: ['run', '--rm', '-i', '-w/', '-v/tmp/:/tmp/', 'python', 'python']
         Ruby:
           command: "docker"
-          prependArgs: ['run', '--rm', '-w/', '-v/tmp/:/tmp/', 'ruby', 'ruby']
+          prependArgs: ['run', '--rm', '-i', '-w/', '-v/tmp/:/tmp/', 'ruby', 'ruby']
     languages: [
       {
         name: "JavaScript (node.js)"
@@ -154,6 +154,13 @@ def install_plugin(plugin_name)
   apm("link -d #{plugin_name}")
 end
 
+def configure
+  puts "Writing config..."
+  File.open(CONFIG_PATH, 'w+') do |file|
+    file.puts(ATOM_CONFIG)
+  end
+end
+
 def install
   puts LOGO
 
@@ -175,10 +182,7 @@ def install
     execute("unzip #{ATOM_ZIP}")
   end
 
-  puts "Writing config..."
-  File.open(CONFIG_PATH, 'w+') do |file|
-    file.puts(ATOM_CONFIG)
-  end
+  configure
 
   puts 'Running APM to install plugins...'
   apm('unlink --dev --all')
@@ -205,7 +209,7 @@ def install
 end
 
 def run
-  atom_cmd = "ATOM_HOME=#{ATOM_HOME} #{File.join(LOCAL_ATOM_PATH, ATOM_EXECUTABLE)} -d"
+  atom_cmd = "ATOM_HOME=#{ATOM_HOME} #{File.join(LOCAL_ATOM_PATH, ATOM_EXECUTABLE)} -d --clear-window-state"
   pid      = spawn(atom_cmd)
   puts "Running Atom. PID: #{pid}"
   Process.detach(pid)
@@ -217,10 +221,13 @@ case ARGV[0]
   when 'install'
     install
     run
+  when 'configure'
+    configure
   else
     puts <<-INFO
       USAGE:
-        TEAM_TOKEN='winterns' CABLE_SERVER_URL='ws://localhost:3000/cable' ruby install_cc.rb install
-        ruby install_cc.rb run
+          TEAM_TOKEN='winterns' CABLE_SERVER_URL='ws://localhost:3000/cable' ruby install_cc.rb install
+          TEAM_TOKEN='winterns' CABLE_SERVER_URL='ws://localhost:3000/cable' ruby install_cc.rb configure
+          ruby install_cc.rb run
     INFO
 end
