@@ -1,6 +1,7 @@
 ActionCableSubscription = require './action-cable-subscription'
 ChallengesService = require './challenges-service'
 ChallengeSolvedView = require './views/challenge-solved-view'
+ValidationModeView = require './views/validation-mode-view'
 ConnectionStatusView = require './views/connection-status-view'
 PackageActivator = require './package-activator'
 executeTasks = require './task-executor'
@@ -57,6 +58,9 @@ module.exports =
   teamIdPromise: null
   challengeSolvedPanel: null
   currentChallengeSolved: false
+  validationMode: false
+  validatedSolution: null
+  connectionStatusView: null
 
   activate: (state) ->
     console.log("Activating u2i-hackathon!!!")
@@ -74,18 +78,19 @@ module.exports =
     @actionCableSubscription = new ActionCableSubscription cableServerUrl, teamToken
     @challengesService = new ChallengesService @actionCableSubscription
 
-    connectionStatusView = new ConnectionStatusView
+    @connectionStatusView = new ConnectionStatusView
+    statusView = @connectionStatusView
     # move everything to connectionStatusView?
     @actionCableSubscription.onConnected ->
-      connectionStatusView.setConnected()
+      statusView.setConnected()
     @actionCableSubscription.onDisconnected ->
-      connectionStatusView.setDisconnected()
+      statusView.setDisconnected()
     @actionCableSubscription.onRejected ->
-      connectionStatusView.setInvalidToken()
+      statusView.setInvalidToken()
     @challengesService.onTeamDetails (teamDetails) ->
-      connectionStatusView.setTeamName teamDetails.name
+      statusView.setTeamName teamDetails.name
     atom.workspace.addTopPanel
-      item: connectionStatusView.getElement(),
+      item: statusView.getElement(),
       visible: true
 
     @workspaceOrganizer = new WorkspaceOrganizer solutionFolder, snippetProvider
@@ -95,7 +100,12 @@ module.exports =
         resolve teamDetails.id
 
     @challengesService.onChallengeStarted (challenge) =>
+      @closeValidationMode
       @startChallenge challenge
+      @workspaceOrganizer.showLanguageChoice()
+    @challengesService.onValidatingSolution (solution) =>
+      @validatedSolution = solution
+      @onValidateSolution solution
     @challengesService.onChallengeFinished =>
       @stopChallenge()
     @challengesService.onSolutionFeedback (feedback) =>
@@ -144,6 +154,39 @@ module.exports =
     catch error
       @notificationManager.addError(error.message)
 
+  onValidateSolution: (solution) ->
+    @packageActivator.deactivatePackages()
+    try
+      if @validationMode
+        @workspaceOrganizer.closeValidationWindow()
+      else
+        @validationMode = true
+        @challengeSolvedPanel.hide()
+        @workspaceOrganizer.hideLanguageChoice()
+
+        validationModeView = new ValidationModeView
+        @validationModePanel = atom.workspace.addTopPanel
+          item: validationModeView.getElement()
+          visible: true
+
+        exitButton = validationModeView.getButton()
+        exitButton.addEventListener "click", =>
+          @closeValidationMode()
+
+      @workspaceOrganizer.putValidatedSolution(solution)
+      @notificationManager.addInfo("Validating solution!")
+    catch error
+      @notificationManager.addError(error.message)
+
+  closeValidationMode: () ->
+    @validationModePanel.hide()
+    @validationMode = false
+    @validatedSolution = null
+    @workspaceOrganizer.closeValidationWindow()
+    @workspaceOrganizer.showLanguageChoice()
+    if @challengesService.getCurrentChallenge()
+      @activatePackages(@challengesService.getCurrentChallenge().plugins)
+
   activatePackages: (plugins) ->
     result = @packageActivator.activatePackages(plugins)
     if result.failedPackages.length > 0
@@ -163,29 +206,43 @@ module.exports =
   onSolutionFeedback: (solutionFeedback) ->
     if solutionFeedback.success
       @notificationManager.addInfo(solutionFeedback.message)
-      @challengeSolvedPanel.show()
-      @currentChallengeSolved = true
+      if !@validationMode
+        @challengeSolvedPanel.show()
+        @currentChallengeSolved = true
     else
       @notificationManager.addError(solutionFeedback.message)
 
   runChallenge: ->
-    if @currentChallengeSolved
-      @notificationManager.addInfo "You've already submitted a correct solution!"
+    if @validationMode
+      inputs = @validatedSolution.inputs
+      @run(inputs)
     else
-      try
+      if @currentChallengeSolved
+        @notificationManager.addInfo "You've already submitted a correct solution!"
+        @challengeSolvedPanel.show()
+      else
         inputs = @challengesService.getCurrentChallenge().inputs
-        outputsCallback = (outputs) => @onOutputs outputs
-        errorCallback = (error) => @notificationManager.addError error
-        @notificationManager.addInfo("Checking your solution!!!")
-        executeTasks @runtime, inputs, outputsCallback, errorCallback
-      catch error
-        @notificationManager.addError(
-          "Error while checking your solution:\n" + error.message)
+        @run(inputs)
+
+  run: (inputs) ->
+    try
+      outputsCallback = (outputs) => @onOutputs outputs
+      errorCallback = (error) =>
+        outputsCallback([error])
+        @notificationManager.addError error
+      @notificationManager.addInfo("Checking your solution!!!")
+      executeTasks @runtime, inputs, outputsCallback, errorCallback
+    catch error
+      @notificationManager.addError(
+        "Error while checking your solution:\n" + error.message)
 
   onOutputs: (outputs) ->
-    code = @workspaceOrganizer.getCurrentSolution()
-    chosenLanguage = @workspaceOrganizer.chosenLanguageExtension()
-    requestSuccessful = @challengesService.checkSolution outputs, code, chosenLanguage
+    if @validationMode
+      requestSuccessful = @challengesService.validateSolution outputs, @validatedSolution.challenge_id
+    else
+      code = @workspaceOrganizer.getCurrentSolution()
+      chosenLanguage = @workspaceOrganizer.chosenLanguageExtension()
+      requestSuccessful = @challengesService.checkSolution outputs, code, chosenLanguage
     unless requestSuccessful
       @notificationManager.addWarning CANNOT_CONNECT_MSG
 

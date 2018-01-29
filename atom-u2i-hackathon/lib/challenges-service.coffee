@@ -4,6 +4,7 @@ ActionCable = require 'actioncable'
 module.exports =
 class ChallengesService
   CHALLENGE_STARTED_MESSAGE = 'challengeStarted'
+  VALIDATING_SOLUTION_MESSAGE = 'validatingSolution'
   CHALLENGE_FINISHED_MESSAGE = 'challengeFinished'
   SOLUTION_RESPONSE_MESSAGE = 'solutionResponse'
   NO_CURRENT_CHALLENGE_MESSAGE = 'noCurrentChallenge'
@@ -13,6 +14,7 @@ class ChallengesService
   CHALLENGE_FINISHED_EVENT = 'challengeFinishedEvent'
   SOLUTION_RESPONSE_EVENT = 'solutionResponseEvent'
   TEAM_DETAILS_EVENT = 'teamDetailsEvent'
+  VALIDATING_SOLUTION_EVENT = 'validatingSolutionEvent'
 
   constructor: (@_actionCableSubscription) ->
     @_emitter = new Emitter
@@ -54,6 +56,8 @@ class ChallengesService
             @_emitter.emit CHALLENGE_FINISHED_EVENT
       when TEAM_DETAILS_MESSAGE
         @_emitter.emit TEAM_DETAILS_EVENT, data.body
+      when VALIDATING_SOLUTION_MESSAGE
+        @_emitter.emit VALIDATING_SOLUTION_EVENT, data.body
 
   destroy: ->
     @_emitter.dispose()
@@ -62,12 +66,18 @@ class ChallengesService
   getCurrentChallenge: ->
     @_challenge || throw new Error("No challenge active.")
 
-  checkSolution: (outputs, code, chosenLanguage, subtractedPoints = 0) ->
+  checkSolution: (outputs, code, chosenLanguage, compiled, subtractedPoints = 0) ->
     @_actionCableSubscription.perform 'solve_challenge',
       outputs: outputs,
       code: code,
       language: chosenLanguage,
+      compiled: compiled,
       subtractedPoints: subtractedPoints
+
+  validateSolution: (outputs, challenge_id) ->
+    @_actionCableSubscription.perform 'validate_solution',
+      outputs: outputs,
+      challenge_id: challenge_id
 
   updateSubtractedPoints: (points) ->
     @_actionCableSubscription.perform 'update_subtracted_points',
@@ -75,6 +85,9 @@ class ChallengesService
 
   onChallengeStarted: (callback) ->
     @_emitter.on CHALLENGE_STARTED_EVENT, callback
+
+  onValidatingSolution: (callback) ->
+    @_emitter.on VALIDATING_SOLUTION_EVENT, callback
 
   onChallengeFinished: (callback) ->
     @_emitter.on CHALLENGE_FINISHED_EVENT, callback

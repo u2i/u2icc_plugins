@@ -16,8 +16,10 @@ class WorkspaceOrganizer
 
   hiddenChallenge = null
   hiddenTeam = null
+  validationFileName = 'validation'
 
   constructor: (@solutionFolder, @snippetProvider) ->
+    @closeEditors()
     @_ensureSolutionFolderExists()
     @_createLanguageChoicePanel()
 
@@ -28,12 +30,12 @@ class WorkspaceOrganizer
     @_languageChoiceView = new LanguageChoiceView
     @_languageChoicePanel = atom.workspace.addTopPanel
       item: @_languageChoiceView.getElement(),
-      visible: true
+      visible: false
 
     changeLang = @_languageChoiceView.getButton()
     changeLang.addEventListener "click", =>
       @reloadLang(@solutionFolder, @snippetProvider)
-    
+
   organizeWorkspaceOnChallengeStart: (challenge, teamId) ->
     # @hideLanguageChoice()
     hiddenChallenge = challenge
@@ -44,6 +46,9 @@ class WorkspaceOrganizer
    
   hideLanguageChoice: ->
     @_languageChoicePanel.hide()
+
+  showLanguageChoice: ->
+    @_languageChoicePanel.show()
   
   reloadLang: (@solutionFolder, @snippetProvider) ->
     @_ensureSolutionFolderExists()
@@ -53,7 +58,10 @@ class WorkspaceOrganizer
 
   closeEditors: ->
     atom.workspace.getTextEditors().forEach (editor) ->
-      editor.save()
+      try
+        editor.save()
+      catch error
+        console.warn('Nothing to save')
       editor.destroy()
 
   showChallengeDescription: (challenge) ->
@@ -74,12 +82,25 @@ class WorkspaceOrganizer
   getCurrentSolution: ->
     atom.workspace.getActiveTextEditor().getText()
 
+  putValidatedSolution: (solution) ->
+    fileName = "#{validationFileName}.#{solution.language}"
+    filePath = path.join @solutionFolder, fileName
+    atom.workspace.open(filePath).then (editor) ->
+      editor.setText solution.code
+      editor.save()
+
+  closeValidationWindow: () ->
+    atom.workspace.getTextEditors().forEach (editor) ->
+      if (editor?.buffer?.file?.path.indexOf(validationFileName) != -1)
+        editor.destroy()
+
   chosenLanguageExtension: ->
     @_languageChoiceView.getChosenLanguageExtension()
 
   _findExistingFileName: (challenge, teamId) ->
     fileExtension = @_languageChoiceView.getChosenLanguageExtension()
-    namePattern = new RegExp "^\\d{8}-\\d{6}-#{challenge.id}-#{teamId}.#{fileExtension}$"
+    challengeId = challenge?.id
+    namePattern = new RegExp "^\\d{8}-\\d{6}-#{challengeId}-#{teamId}.#{fileExtension}$"
     fileNames = fs.readdirSync @solutionFolder
     fileNames.find (name) -> namePattern.test name
 

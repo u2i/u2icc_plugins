@@ -38,6 +38,7 @@ module.exports = RandomFontSize =
     console.log 'RandomFontSize stopped!'
     unless @_randomFontSizeIsActive then return
 
+    @_editorEventSubscription?.dispose()
     @_view.removeEventListener 'keydown', @_listener
     @_listeners = []
     @_resetFontSize()
