@@ -13,6 +13,7 @@ module.exports =
       @exitButton = document.createElement 'button'
       @exitButton.setAttribute 'id', 'exit-button'
       @exitButton.innerText = 'EXIT'
+
       @element.appendChild @exitButton
 
     destroy: ->

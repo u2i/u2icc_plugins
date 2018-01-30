@@ -74,10 +74,10 @@ class ChallengesService
       compiled: compiled,
       subtractedPoints: subtractedPoints
 
-  validateSolution: (outputs, challenge_id) ->
+  validateSolution: (outputs, challengeId) ->
     @_actionCableSubscription.perform 'validate_solution',
       outputs: outputs,
-      challenge_id: challenge_id
+      challenge_id: challengeId
 
   updateSubtractedPoints: (points) ->
     @_actionCableSubscription.perform 'update_subtracted_points',

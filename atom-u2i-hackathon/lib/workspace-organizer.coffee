@@ -9,6 +9,7 @@ executeTasks = require './task-executor'
 
 ChallengeDescriptionView = require './views/challenge-description-view'
 LanguageChoiceView = require './views/language-choice-view'
+ChallengeSolvedView = require './views/challenge-solved-view'
 TestingView = require './views/testing-view'
 
 module.exports =
@@ -16,12 +17,16 @@ class WorkspaceOrganizer
 
   hiddenChallenge = null
   hiddenTeam = null
+  @validationMode = false
+  @validatedSolution = null
   validationFileName = 'validation'
 
-  constructor: (@solutionFolder, @snippetProvider) ->
+  constructor: (@solutionFolder, @snippetProvider, @validationModeView) ->
     @closeEditors()
     @_ensureSolutionFolderExists()
     @_createLanguageChoicePanel()
+    @_createChallengeSolvedPanel()
+    @_createValidationModePanel(@validationModeView)
 
   _ensureSolutionFolderExists: ->
     mkdirp.sync @solutionFolder
@@ -36,6 +41,17 @@ class WorkspaceOrganizer
     changeLang.addEventListener "click", =>
       @reloadLang(@solutionFolder, @snippetProvider)
 
+  _createChallengeSolvedPanel: ->
+    challengeSolvedView = new ChallengeSolvedView
+    @_challengeSolvedPanel = atom.workspace.addTopPanel
+      item: challengeSolvedView.getElement()
+      visible: false
+
+  _createValidationModePanel: (validationModeView) ->
+    @_validationModePanel = atom.workspace.addTopPanel
+      item: validationModeView.getElement()
+      visible: false
+
   organizeWorkspaceOnChallengeStart: (challenge, teamId) ->
     # @hideLanguageChoice()
     hiddenChallenge = challenge
@@ -49,6 +65,18 @@ class WorkspaceOrganizer
 
   showLanguageChoice: ->
     @_languageChoicePanel.show()
+
+  hideChallengeSolved: ->
+    @_challengeSolvedPanel.hide()
+
+  showChallengeSolved: ->
+    @_challengeSolvedPanel.show()
+
+  hideValidationMode: ->
+    @_validationModePanel.hide()
+
+  showValidationMode: ->
+    @_validationModePanel.show()
   
   reloadLang: (@solutionFolder, @snippetProvider) ->
     @_ensureSolutionFolderExists()
@@ -82,7 +110,7 @@ class WorkspaceOrganizer
   getCurrentSolution: ->
     atom.workspace.getActiveTextEditor().getText()
 
-  putValidatedSolution: (solution) ->
+  _putValidatedSolution: (solution) ->
     fileName = "#{validationFileName}.#{solution.language}"
     filePath = path.join @solutionFolder, fileName
     atom.workspace.open(filePath).then (editor) ->
@@ -130,6 +158,25 @@ class WorkspaceOrganizer
     # @_removeChallengeDescription()
     atom.reload()
 
+  switchToValidationMode: (solution) ->
+    @validationMode = true
+    @validatedSolution = solution
+
+    @closeValidationWindow()
+    @_challengeSolvedPanel.hide()
+    @hideLanguageChoice()
+    @showValidationMode()
+
+    @_putValidatedSolution(solution)
+
+  switchToNormalMode: ->
+    @validationMode = false
+    @validatedSolution = null
+
+    @hideValidationMode()
+    @closeValidationWindow()
+    @showLanguageChoice()
+
   createTestingView: (runtime) ->
     testingView = new TestingView(runtime)
     @_testingViewPanel = atom.workspace.addLeftPanel
@@ -140,3 +187,5 @@ class WorkspaceOrganizer
     @_testingViewPanel?.destroy()
     @_languageChoicePanel?.destroy()
     @_challengeDescriptionView?.destroy()
+    @_validationModePanel?.destroy()
+    @_challengeSolvedPanel?.destroy()

@@ -1,8 +1,7 @@
 ActionCableSubscription = require './action-cable-subscription'
 ChallengesService = require './challenges-service'
-ChallengeSolvedView = require './views/challenge-solved-view'
-ValidationModeView = require './views/validation-mode-view'
 ConnectionStatusView = require './views/connection-status-view'
+ValidationModeView = require './views/validation-mode-view'
 PackageActivator = require './package-activator'
 executeTasks = require './task-executor'
 SnippetProvider = require './snippet-provider'
@@ -58,8 +57,6 @@ module.exports =
   teamIdPromise: null
   challengeSolvedPanel: null
   currentChallengeSolved: false
-  validationMode: false
-  validatedSolution: null
   connectionStatusView: null
 
   activate: (state) ->
@@ -78,33 +75,23 @@ module.exports =
     @actionCableSubscription = new ActionCableSubscription cableServerUrl, teamToken
     @challengesService = new ChallengesService @actionCableSubscription
 
-    @connectionStatusView = new ConnectionStatusView
-    statusView = @connectionStatusView
-    # move everything to connectionStatusView?
-    @actionCableSubscription.onConnected ->
-      statusView.setConnected()
-    @actionCableSubscription.onDisconnected ->
-      statusView.setDisconnected()
-    @actionCableSubscription.onRejected ->
-      statusView.setInvalidToken()
-    @challengesService.onTeamDetails (teamDetails) ->
-      statusView.setTeamName teamDetails.name
-    atom.workspace.addTopPanel
-      item: statusView.getElement(),
-      visible: true
+    @_setupConnectionStatusView()
 
-    @workspaceOrganizer = new WorkspaceOrganizer solutionFolder, snippetProvider
+    validationModeView = new ValidationModeView
+    validationModeView.getButton().addEventListener "click", =>
+      @closeValidationMode()
+
+    @workspaceOrganizer = new WorkspaceOrganizer solutionFolder, snippetProvider, validationModeView
 
     @teamIdPromise = new Promise (resolve, reject) =>
       @challengesService.onTeamDetails (teamDetails) ->
         resolve teamDetails.id
 
     @challengesService.onChallengeStarted (challenge) =>
-      @closeValidationMode
+      @workspaceOrganizer.switchToNormalMode()
       @startChallenge challenge
       @workspaceOrganizer.showLanguageChoice()
     @challengesService.onValidatingSolution (solution) =>
-      @validatedSolution = solution
       @onValidateSolution solution
     @challengesService.onChallengeFinished =>
       @stopChallenge()
@@ -118,12 +105,6 @@ module.exports =
     @subscriptions = new CompositeDisposable
     @subscriptions.add atom.commands.add 'atom-workspace',
       'u2i-hackathon:run': => @runChallenge()
-    
-
-    challengeSolvedView = new ChallengeSolvedView
-    @challengeSolvedPanel = atom.workspace.addTopPanel
-      item: challengeSolvedView.getElement()
-      visible: false
 
   validateConfig: ->
     packageConfig = atom.config.get('u2i-hackathon')
@@ -148,7 +129,7 @@ module.exports =
       @notificationManager.addInfo("Challenge started: " + challenge.name)
       @teamIdPromise.then (teamId) =>
         @workspaceOrganizer.organizeWorkspaceOnChallengeStart challenge, teamId
-      @challengeSolvedPanel.hide()
+      @workspaceOrganizer.hideChallengeSolved()
       @currentChallengeSolved = false
       @disableAutocomplete()
     catch error
@@ -157,35 +138,14 @@ module.exports =
   onValidateSolution: (solution) ->
     @packageActivator.deactivatePackages()
     try
-      if @validationMode
-        @workspaceOrganizer.closeValidationWindow()
-      else
-        @validationMode = true
-        @challengeSolvedPanel.hide()
-        @workspaceOrganizer.hideLanguageChoice()
-
-        validationModeView = new ValidationModeView
-        @validationModePanel = atom.workspace.addTopPanel
-          item: validationModeView.getElement()
-          visible: true
-
-        exitButton = validationModeView.getButton()
-        exitButton.addEventListener "click", =>
-          @closeValidationMode()
-
-      @workspaceOrganizer.putValidatedSolution(solution)
+      @workspaceOrganizer.switchToValidationMode(solution)
       @notificationManager.addInfo("Validating solution!")
     catch error
       @notificationManager.addError(error.message)
 
   closeValidationMode: () ->
-    @validationModePanel.hide()
-    @validationMode = false
-    @validatedSolution = null
-    @workspaceOrganizer.closeValidationWindow()
-    @workspaceOrganizer.showLanguageChoice()
-    if @challengesService.getCurrentChallenge()
-      @activatePackages(@challengesService.getCurrentChallenge().plugins)
+    @workspaceOrganizer.switchToNormalMode()
+    @activatePackages(@challengesService.getCurrentChallenge().plugins)
 
   activatePackages: (plugins) ->
     result = @packageActivator.activatePackages(plugins)
@@ -198,7 +158,7 @@ module.exports =
   stopChallenge: ->
     # @keystrokeCounter.stop()
     @notificationManager.addWarning "Challenge finished!"
-    @challengeSolvedPanel.hide()
+    @workspaceOrganizer.hideChallengeSolved()
     @currentChallengeSolved = false
     @packageActivator.deactivatePackages()
     @workspaceOrganizer.organizeWorkspaceOnChallengeEnd()
@@ -206,20 +166,21 @@ module.exports =
   onSolutionFeedback: (solutionFeedback) ->
     if solutionFeedback.success
       @notificationManager.addInfo(solutionFeedback.message)
-      if !@validationMode
-        @challengeSolvedPanel.show()
+      if !@workspaceOrganizer.validationMode
+        @workspaceOrganizer.showChallengeSolved()
         @currentChallengeSolved = true
+        @packageActivator.deactivatePackages()
     else
       @notificationManager.addError(solutionFeedback.message)
 
   runChallenge: ->
-    if @validationMode
-      inputs = @validatedSolution.inputs
+    if @workspaceOrganizer.validationMode
+      inputs = @workspaceOrganizer.validatedSolution.inputs
       @run(inputs)
     else
       if @currentChallengeSolved
         @notificationManager.addInfo "You've already submitted a correct solution!"
-        @challengeSolvedPanel.show()
+        @workspaceOrganizer.showChallengeSolved()
       else
         inputs = @challengesService.getCurrentChallenge().inputs
         @run(inputs)
@@ -237,14 +198,29 @@ module.exports =
         "Error while checking your solution:\n" + error.message)
 
   onOutputs: (outputs) ->
-    if @validationMode
-      requestSuccessful = @challengesService.validateSolution outputs, @validatedSolution.challenge_id
+    if @workspaceOrganizer.validationMode
+      challengeId = @workspaceOrganizer.validatedSolution.challenge_id
+      requestSuccessful = @challengesService.validateSolution outputs, challengeId
     else
       code = @workspaceOrganizer.getCurrentSolution()
       chosenLanguage = @workspaceOrganizer.chosenLanguageExtension()
       requestSuccessful = @challengesService.checkSolution outputs, code, chosenLanguage
     unless requestSuccessful
       @notificationManager.addWarning CANNOT_CONNECT_MSG
+
+  _setupConnectionStatusView: ->
+    connectionStatusView = new ConnectionStatusView
+    @actionCableSubscription.onConnected ->
+      connectionStatusView.setConnected()
+    @actionCableSubscription.onDisconnected ->
+      connectionStatusView.setDisconnected()
+    @actionCableSubscription.onRejected ->
+      connectionStatusView.setInvalidToken()
+    @challengesService.onTeamDetails (teamDetails) ->
+      connectionStatusView.setTeamName teamDetails.name
+    atom.workspace.addTopPanel
+      item: connectionStatusView.getElement(),
+      visible: true
 
   deactivate: ->
     @actionCableSubscription?.destroy()
@@ -253,7 +229,6 @@ module.exports =
     @runtime?.destroy()
     @counter?.destroy()
     @workspaceOrganizer.destroy()
-    @challengeSolvedPanel?.destroy()
 
   consumeBlankRuntime: (runtime) ->
     @runtime = runtime
