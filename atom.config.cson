@@ -1,4 +1,9 @@
 "*":
+  core:
+    automaticallyUpdate: false
+    telemetryConsent: "no"
+  welcome:
+    showOnStartup: false
   "u2i-hackathon":
     cableServerUrl: "ws://localhost:3000/cable"
     commandOverwrites:

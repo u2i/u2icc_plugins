@@ -29,8 +29,8 @@ PLUGINS_TO_INSTALL = %w[
   atom-touchpad
 ]
 
-ATOM_URL             = 'https://github.com/atom/atom/releases/download/v1.21.1/atom-mac.zip'
-ATOM_SHA256_CHECKSUM = 'f8e76f487f347b05ae693e2b9f903656473da3aec75c3647caba0e2b6cea9d62'
+ATOM_URL             = 'https://github.com/atom/atom/releases/download/v1.14.2/atom-mac.zip'
+ATOM_SHA256_CHECKSUM = '0ff141e683e8c3d9c0b17def2db7fe05ba05e7dd1b46bae7f3ae3d7d1782452a'
 
 WORKING_DIR     = Dir.pwd
 LOCAL_ATOM_PATH = File.join(WORKING_DIR, 'atom') # Folder where home is created, and atom downloaded and installed
@@ -77,9 +77,10 @@ TEXT
 ATOM_CONFIG = <<CSON
 "*":
   core:
-    disabledPackages: [
-      "autocomplete-plus"
-    ]
+    automaticallyUpdate: false
+    telemetryConsent: "no"
+  welcome:
+    showOnStartup: false
   "exception-reporting":
     userId: "20f7e564-5f32-429e-a279-9688edbdd5b3"
   "u2i-hackathon":
