@@ -2,7 +2,7 @@
 
 class TaskExecutor
 
-  TIME_LIMIT_IN_SECONDS = 5
+  TIME_LIMIT_IN_SECONDS = 10
   NO_OUTPUT_MSG = "For at least one of the inputs, your program hasn't " +
                   "written anything to the standard output."
   TOO_LONG_MSG = "Your program didn't produce outputs for all of the inputs " +

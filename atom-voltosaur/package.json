@@ -1,6 +1,6 @@
 {
-  "name": "backspace-fight",
-  "main": "./lib/backspace-fight",
+  "name": "voltosaur",
+  "main": "./lib/voltosaur",
   "version": "0.0.0",
   "description": "Removes one letter every 1 second if no keystroke",
   "keywords": [
@@ -10,12 +10,14 @@
     "fun"
   ],
   "activationCommands": {
-    "atom-workspace": "backspace-fight:activate"
+    "atom-workspace": "voltosaur:activate"
   },
-  "repository": "https://github.com/u2i/atom-backspace-fight",
+  "repository": "https://github.com/u2i/atom-voltosaur",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "serialport": "^6.0.5"
+  }
 }

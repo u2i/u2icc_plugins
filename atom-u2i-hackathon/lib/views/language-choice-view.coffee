@@ -45,7 +45,7 @@ class LanguageChoiceView
 
   resolveVersion: (printVersionCommand) ->
     new Promise (resolve, reject) =>
-      exec printVersionCommand, {timeout: 5000}, (err, stdout, stderr) =>
+      exec printVersionCommand, {timeout: 6000}, (err, stdout, stderr) =>
         if err
           resolve VERSION_UNKNOWN
         else

@@ -53,6 +53,7 @@ class Runtime
     return unless codeContext.lang?
 
     executionOptions = if options then options else @scriptOptions
+
     commandContext = CommandContext.build(@, executionOptions, codeContext)
 
     return unless commandContext

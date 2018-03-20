@@ -53,7 +53,8 @@ class WorkspaceOrganizer
 
   closeEditors: ->
     atom.workspace.getTextEditors().forEach (editor) ->
-      editor.save()
+      if editor.buffer.getPath()
+        editor.save()
       editor.destroy()
 
   showChallengeDescription: (challenge) ->
