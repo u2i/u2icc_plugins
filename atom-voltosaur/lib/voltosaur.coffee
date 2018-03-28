@@ -1,6 +1,8 @@
 {CompositeDisposable} = require 'atom'
 SerialPort = require('serialport')
 
+
+
 voltosaur_gets= 999
 volts_phase = 0
 voltosaur_wants= [ [50,300, '0px 30px'], [301, 600, '0px 0px'], [601, 1000, '0px -32px'] ]
@@ -8,7 +10,11 @@ voltosaur_wants= [ [50,300, '0px 30px'], [301, 600, '0px 0px'], [601, 1000, '0px
 VoltsView = require './views/volts-view'
 voltsView = new VoltsView
 
-module.exports = Voltosaur =
+module.exports =
+  config: 
+    device_serial:
+      type: 'string'
+      default: 'in terminal window `ls -la /dev/`'
   _VoltosaurIsActive: false
   _editorEventSubscription: null
   _listeners: []
@@ -20,6 +26,7 @@ module.exports = Voltosaur =
     @_start()
 
   _start: ->
+    
     return if @_VoltosaurIsActive
     @_VoltosaurIsActive = true
 
@@ -33,7 +40,9 @@ module.exports = Voltosaur =
     @voltsPanel = atom.workspace.addTopPanel
       item: voltsView.getElement()
 
-    port = new SerialPort('/dev/tty.usbserial-AI054BZM',
+    ds = (atom.config.get 'voltosaur.device_serial')
+
+    port = new SerialPort('/dev/'+ds,
       baudRate: 9600
       autoOpen: false)
     port.on 'error', (err) ->

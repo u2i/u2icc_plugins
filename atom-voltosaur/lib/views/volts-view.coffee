@@ -18,6 +18,7 @@ module.exports =
       @positioner.style.width = '100%'
       @positioner.style.height = '2px'
       @positioner.style.background = '#3dff00'
+      @positioner.style.transition = 'bottom 250ms ease-in-out';
       @positioner.style.position = 'absolute'
       @positioner.style.top = 'auto'
       @positioner.style.bottom = '0px'
