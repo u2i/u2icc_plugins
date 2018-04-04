@@ -1,4 +1,7 @@
 {CompositeDisposable} = require 'atom'
+fs = require 'fs'
+path = require 'path'
+snip = ""
 
 KEY_CODES =
   DELETING: [8, 46] # backspace, delete
@@ -23,6 +26,17 @@ module.exports = BackspaceDeath =
       view.addEventListener 'keydown', listener
       @_listeners.push [view, listener]
 
+    @_getSnippet()
+
+  _provide: (fileExtension) ->
+      snippetPath = path.join snippetDir, "snippet.#{fileExtension}"
+      new Promise (resolve, reject) ->
+        fs.readFile snippetPath, (err, content) ->
+          if err
+            resolve ''
+          else
+            resolve content.toString()
+
   _handleKeyDown: (editor, event) ->
     if @_deletesText event then @_obliterate editor
 
@@ -33,8 +47,26 @@ module.exports = BackspaceDeath =
       (event.keyCode == KEY_CODES.K and event.ctrlKey) or
       (event.keyCode == KEY_CODES.X and event.metaKey)
 
+  _getSnippet: ->
+
+    fileExtension = document.querySelector('#language-choice-box select').value
+
+    snippetDir = path.join __dirname, '../../atom-u2i-hackathon/codeSnippets'
+    snippetPath = path.join snippetDir, "snippet.#{fileExtension}"
+
+    fs.readFile snippetPath, (err, content) ->
+      if err
+        snip = "error"
+      else
+        snip = content.toString()
+
+  
+
   _obliterate: (editor) ->
-    editor.setText('')
+
+    @_getSnippet()
+
+    editor.setText(snip)
     editor.getBuffer().clearUndoStack()
     try
       editor.save()
