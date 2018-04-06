@@ -35,7 +35,7 @@ class WorkspaceOrganizer
     @_languageChoiceView = new LanguageChoiceView
     @_languageChoicePanel = atom.workspace.addTopPanel
       item: @_languageChoiceView.getElement(),
-      visible: false
+      visible: true
 
     changeLang = @_languageChoiceView.getButton()
     changeLang.addEventListener "click", =>
@@ -152,7 +152,7 @@ class WorkspaceOrganizer
     "#{formattedDate}-#{challenge.id}-#{teamId}.#{fileExtension}"
 
   organizeWorkspaceOnChallengeEnd: ->
-    # @_languageChoicePanel.show()
+    @_languageChoicePanel.show()
     hiddenChallenge = null
     hiddenTeam = null
     # @_removeChallengeDescription()
