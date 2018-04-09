@@ -26,10 +26,10 @@ module.exports = RandomFontSize =
   _changeFontSize: ->
     editors = document.querySelectorAll '.editor.is-focused'
     for editor in editors
-      editor.style['font-size'] = @_randomNum(80) + 'px'
+      editor.style['font-size'] = @_randomNum(2,80) + 'px'
 
-  _randomNum: (max) ->
-    Math.floor Math.random() * max
+  _randomNum: (min, max) ->
+    Math.floor (Math.random() * (max - min)) + min
 
   deactivate: ->
     @_stop()
